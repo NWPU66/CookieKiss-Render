@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UtilTool", "UtilTool\UtilTool.vcxproj", "{87BEFA78-A876-43CE-B84C-DDC50BFB3B9B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demo_HelloOpenGL", "demo_HelloOpenGL\demo_HelloOpenGL.vcxproj", "{75CA37D1-DEB2-471E-A2A0-904DF03CA99C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{87BEFA78-A876-43CE-B84C-DDC50BFB3B9B}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{87BEFA78-A876-43CE-B84C-DDC50BFB3B9B}.Debug|Any CPU.Build.0 = Debug|Win32
+		{87BEFA78-A876-43CE-B84C-DDC50BFB3B9B}.Release|Any CPU.ActiveCfg = Release|Win32
+		{87BEFA78-A876-43CE-B84C-DDC50BFB3B9B}.Release|Any CPU.Build.0 = Release|Win32
+		{75CA37D1-DEB2-471E-A2A0-904DF03CA99C}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{75CA37D1-DEB2-471E-A2A0-904DF03CA99C}.Debug|Any CPU.Build.0 = Debug|Win32
+		{75CA37D1-DEB2-471E-A2A0-904DF03CA99C}.Release|Any CPU.ActiveCfg = Release|Win32
+		{75CA37D1-DEB2-471E-A2A0-904DF03CA99C}.Release|Any CPU.Build.0 = Release|Win32
+	EndGlobalSection
+EndGlobal
