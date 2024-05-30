@@ -20,9 +20,9 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{87BEFA78-A876-43CE-B84C-DDC50BFB3B9B}</ProjectGuid>
+    <ProjectGuid>{7C218802-68E1-4575-9BA2-17501D1C9F66}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>UtilTool</RootNamespace>
+    <RootNamespace>ckCore</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -154,7 +154,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="UtilTool.cpp" />
+    <ClCompile Include="ckCore.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
