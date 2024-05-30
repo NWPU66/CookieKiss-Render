@@ -2,13 +2,13 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "utilTool", "utilTool\utilTool.vcxproj", "{87BEFA78-A876-43CE-B84C-DDC50BFB3B9B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demo_HelloOpenGL", "demo_HelloOpenGL\demo_HelloOpenGL.vcxproj", "{75CA37D1-DEB2-471E-A2A0-904DF03CA99C}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "singleDemo", "singleDemo", "{34AD59DD-2BAD-42BD-937C-56BF92C6082B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IntegratedEdittingEnv", "IntegratedEdittingEnv\IntegratedEdittingEnv.vcxproj", "{7C91200D-C0C2-481C-A499-A1FE68D4A0C1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ckCore", "ckCore\ckCore.vcxproj", "{7C218802-68E1-4575-9BA2-17501D1C9F66}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demo_HelloOpenGL", "demo\demo_HelloOpenGL\demo_HelloOpenGL.vcxproj", "{82AE12D4-D7BB-4C4A-BEFA-295A537C38EC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,10 +20,6 @@ Global
 		{87BEFA78-A876-43CE-B84C-DDC50BFB3B9B}.Debug|Any CPU.Build.0 = Debug|Win32
 		{87BEFA78-A876-43CE-B84C-DDC50BFB3B9B}.Release|Any CPU.ActiveCfg = Release|Win32
 		{87BEFA78-A876-43CE-B84C-DDC50BFB3B9B}.Release|Any CPU.Build.0 = Release|Win32
-		{75CA37D1-DEB2-471E-A2A0-904DF03CA99C}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{75CA37D1-DEB2-471E-A2A0-904DF03CA99C}.Debug|Any CPU.Build.0 = Debug|Win32
-		{75CA37D1-DEB2-471E-A2A0-904DF03CA99C}.Release|Any CPU.ActiveCfg = Release|Win32
-		{75CA37D1-DEB2-471E-A2A0-904DF03CA99C}.Release|Any CPU.Build.0 = Release|Win32
 		{7C91200D-C0C2-481C-A499-A1FE68D4A0C1}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{7C91200D-C0C2-481C-A499-A1FE68D4A0C1}.Debug|Any CPU.Build.0 = Debug|Win32
 		{7C91200D-C0C2-481C-A499-A1FE68D4A0C1}.Release|Any CPU.ActiveCfg = Release|Win32
@@ -32,8 +28,12 @@ Global
 		{7C218802-68E1-4575-9BA2-17501D1C9F66}.Debug|Any CPU.Build.0 = Debug|Win32
 		{7C218802-68E1-4575-9BA2-17501D1C9F66}.Release|Any CPU.ActiveCfg = Release|Win32
 		{7C218802-68E1-4575-9BA2-17501D1C9F66}.Release|Any CPU.Build.0 = Release|Win32
+		{82AE12D4-D7BB-4C4A-BEFA-295A537C38EC}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{82AE12D4-D7BB-4C4A-BEFA-295A537C38EC}.Debug|Any CPU.Build.0 = Debug|Win32
+		{82AE12D4-D7BB-4C4A-BEFA-295A537C38EC}.Release|Any CPU.ActiveCfg = Release|Win32
+		{82AE12D4-D7BB-4C4A-BEFA-295A537C38EC}.Release|Any CPU.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{75CA37D1-DEB2-471E-A2A0-904DF03CA99C} = {34AD59DD-2BAD-42BD-937C-56BF92C6082B}
+		{82AE12D4-D7BB-4C4A-BEFA-295A537C38EC} = {34AD59DD-2BAD-42BD-937C-56BF92C6082B}
 	EndGlobalSection
 EndGlobal
