@@ -6,17 +6,19 @@ class ckObject
 private:
     std::string objName;
 
+protected:
+    enum ckDebugLevel
+    {
+        NONE,
+        HINT,
+        WARNING,
+        ERROR
+    };
+
 public:
     ckObject()  = default;
     ~ckObject() = default;
 
-    enum ckDebugLevel
-    {
-        NONE = "NONE",
-        HINT = "HINT",
-        WARNING = "WARNING",
-        ERROR = "ERROR"
-    };
 
     inline void debugLog(const char* message, const ckDebugLevel debugLevel = NONE) const;
 };

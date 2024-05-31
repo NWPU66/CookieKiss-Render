@@ -5,6 +5,8 @@
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_glfw.h"
 #include "GLFW/glfw3.h"
+#include "SimpleHardcodeGeom.h"
+#include "ckShader.h"
 
 ImGuiIO& setupImgui(GLFWwindow* window, const char* glsl_version);
 
@@ -17,7 +19,7 @@ int main(int32_t argc, char** argv)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // 3.0+ only，是否兼容未来版本
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Demo", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1280, 960, "Demo", nullptr, nullptr);
     if (!window) { return EXIT_FAILURE; }
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync，垂直同步
@@ -36,6 +38,12 @@ int main(int32_t argc, char** argv)
     bool   show_demo_window    = true;
     bool   show_another_window = false;
     ImVec4 clear_color         = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+    //准备要绘制的三角形
+    GLuint triangleVAO, triangleVBO, triangleEBO;
+    SimpleHardcodeGeom::createTriangleObj(triangleVAO, triangleVBO, triangleEBO);
+    ckShader triangleShader("./triangle.vs.glsl", "./triangle.fs.glsl");
+    triangleShader.use();
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -92,7 +100,9 @@ int main(int32_t argc, char** argv)
         glClear(GL_COLOR_BUFFER_BIT);
 
         //OpenGL渲染指令
-        //......
+        glBindVertexArray(triangleVAO);
+        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);

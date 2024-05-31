@@ -25,8 +25,14 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="CMakeLists.txt" />
+    <Content Include="triangle.fs.glsl" />
+    <Content Include="triangle.vs.glsl" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ckCore\ckCore.vcxproj">
+      <Project>{7c218802-68e1-4575-9ba2-17501d1c9f66}</Project>
+      <Name>ckCore</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\utilTool\utilTool.vcxproj">
       <Project>{87befa78-a876-43ce-b84c-ddc50bfb3b9b}</Project>
       <Name>utilTool</Name>
@@ -123,7 +129,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(_ZVcpkgCurrentInstalledDir)include;E:\Study\CodeProj\CookieKiss-Render\utilTool;E:\Study\CodeProj\CookieKiss-Render\3rdparty\imgui\backends</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(_ZVcpkgCurrentInstalledDir)include;E:\Study\CodeProj\CookieKiss-Render\utilTool;E:\Study\CodeProj\CookieKiss-Render\3rdparty\imgui\backends;E:\Study\CodeProj\CookieKiss-Render\ckCore</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
