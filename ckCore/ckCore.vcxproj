@@ -18,6 +18,28 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ckCamera.h" />
+    <ClInclude Include="ckLight.h" />
+    <ClInclude Include="ckModel.h" />
+    <ClInclude Include="ckObject.h" />
+    <ClInclude Include="ckScene.h" />
+    <ClInclude Include="ckShader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ckCamera.cpp" />
+    <ClCompile Include="ckLight.cpp" />
+    <ClCompile Include="ckModel.cpp" />
+    <ClCompile Include="ckObject.cpp" />
+    <ClCompile Include="ckScene.cpp" />
+    <ClCompile Include="ckShader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\utilTool\utilTool.vcxproj">
+      <Project>{87befa78-a876-43ce-b84c-ddc50bfb3b9b}</Project>
+      <Name>utilTool</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{7C218802-68E1-4575-9BA2-17501D1C9F66}</ProjectGuid>
@@ -109,6 +131,7 @@
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(_ZVcpkgCurrentInstalledDir)include;E:\Study\CodeProj\CookieKiss-Render\utilTool</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -153,9 +176,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="ckCore.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

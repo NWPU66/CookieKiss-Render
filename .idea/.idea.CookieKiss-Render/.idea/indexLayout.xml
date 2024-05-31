@@ -6,6 +6,7 @@
       <Path>stdAsset</Path>
     </attachedFolders>
     <explicitIncludes>
+      <Path>.clang-format</Path>
       <Path>.gitignore</Path>
       <Path>README.md</Path>
       <Path>stdAsset</Path>
