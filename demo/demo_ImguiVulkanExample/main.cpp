@@ -49,10 +49,12 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(VkDebugReportFlagsEXT      fl
 static VkPhysicalDevice SetupVulkan_SelectPhysicalDevice();
 static void             SetupVulkan(std::vector<const char*>& instance_extensions);
 static void             SetupVulkanWindow(ImGui_ImplVulkanH_Window* wd,
-                                          VkSurfaceKHR              surface,
                                           int                       width,
                                           int                       height);
-static ImGuiIO& SetupImgui(GLFWwindow* window);
+static ImGuiIO& SetupImgui(GLFWwindow* window, ImGui_ImplVulkanH_Window* wd);
+static void     FrameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data);
+static void     FramePresent(ImGui_ImplVulkanH_Window* wd);
+static void     CleanupVulkan();
 
 int main(int, char**)
 {
@@ -85,10 +87,104 @@ int main(int, char**)
     int w, h;
     glfwGetFramebufferSize(window, &w, &h);
     ImGui_ImplVulkanH_Window* wd = &g_MainWindowData;
-    SetupVulkanWindow(wd, surface, w, h);
+    wd->Surface                  = surface;
+    SetupVulkanWindow(wd, w, h);
 
     //初始化Imgui
-    SetupImgui();
+    ImGuiIO& io = SetupImgui(window, wd);
+
+    // Our state
+    bool   show_demo_window    = true;
+    bool   show_another_window = false;
+    ImVec4 clear_color         = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+    // Main loop
+    while (!glfwWindowShouldClose(window))
+    {
+        glfwPollEvents();
+
+        // Resize swap chain?
+        if (g_SwapChainRebuild)
+        {
+            int width, height;
+            glfwGetFramebufferSize(window, &width, &height);
+            if (width > 0 && height > 0)
+            {
+                ImGui_ImplVulkan_SetMinImageCount(g_MinImageCount);
+                ImGui_ImplVulkanH_CreateOrResizeWindow(g_Instance, g_PhysicalDevice, g_Device,
+                                                       &g_MainWindowData, g_QueueFamily,
+                                                       g_Allocator, width, height, g_MinImageCount);
+                g_MainWindowData.FrameIndex = 0;
+                g_SwapChainRebuild          = false;
+            }
+        }
+
+        //Start the Dear ImGui frame
+        ImGui_ImplVulkan_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        if (show_demo_window) { ImGui::ShowDemoWindow(&show_demo_window); }
+
+        //Show a simple window that we create ourselves.
+        {
+            static float_t f       = 0;
+            static int32_t counter = 0;
+
+            ImGui::Begin("Hello World!");
+
+            ImGui::Text("This is some useful text.");
+            ImGui::Checkbox("Demo Window", &show_demo_window);
+            ImGui::Checkbox("Another Window", &show_another_window);
+
+            ImGui::SliderFloat("float", &f, 0, 1);
+            ImGui::ColorEdit3("clear color", (float*)&clear_color);
+
+            if (ImGui::Button("Button")) { counter++; }
+            ImGui::SameLine();
+            ImGui::Text("counter = %d", counter);
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate,
+                        io.Framerate);
+            ImGui::End();
+        }
+
+        //Show another simple window.
+        if (show_another_window)
+        {
+            ImGui::Begin("Another Window", &show_another_window);
+            ImGui::Text("Hello from another window!");
+            if (ImGui::Button("Close Me")) show_another_window = false;
+            ImGui::End();
+        }
+
+        //Rendering
+        ImGui::Render();
+        ImDrawData* draw_data    = ImGui::GetDrawData();
+        const bool  is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <=
+                                    0.0f);
+        if (!is_minimized)
+        {
+            wd->ClearValue.color.float32[0] = clear_color.x * clear_color.w;
+            wd->ClearValue.color.float32[1] = clear_color.y * clear_color.w;
+            wd->ClearValue.color.float32[2] = clear_color.z * clear_color.w;
+            wd->ClearValue.color.float32[3] = clear_color.w;
+            FrameRender(wd, draw_data);
+            FramePresent(wd);
+        }
+    }
+    //cleanup
+    err = vkDeviceWaitIdle(g_Device);
+    check_vk_result(err);
+
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    CleanupVulkan();
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
 
     return EXIT_SUCCESS;
 }
@@ -301,11 +397,45 @@ static void SetupVulkan(std::vector<const char*>& instance_extensions)
 }
 
 static void SetupVulkanWindow(ImGui_ImplVulkanH_Window* wd,
-                              VkSurfaceKHR              surface,
                               int                       width,
-                              int                       height) {}
+                              int                       height)
+{
+    // Check for WSI support
+    VkBool32 res;
+    vkGetPhysicalDeviceSurfaceSupportKHR(g_PhysicalDevice, g_QueueFamily, wd->Surface, &res);
+    if (res != VK_TRUE)
+    {
+        fprintf(stderr, "Error no WSI support on physical device 0\n");
+        exit(EXIT_FAILURE);
+    }
 
-static ImGuiIO& SetupImgui(GLFWwindow* window)
+    //选择表面格式
+    const VkFormat requestSurfaceImageFormat[] = {VK_FORMAT_B8G8R8A8_UNORM,
+                                                  VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM,
+                                                  VK_FORMAT_R8G8B8_UNORM};
+    const VkColorSpaceKHR requestSurfaceColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+    wd->SurfaceFormat                              = ImGui_ImplVulkanH_SelectSurfaceFormat(
+        g_PhysicalDevice, wd->Surface, requestSurfaceImageFormat,
+        (size_t)IM_ARRAYSIZE(requestSurfaceImageFormat), requestSurfaceColorSpace);
+
+    //选择呈现模式
+#ifdef APP_USE_UNLIMITED_FRAME_RATE
+    VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR, VK_PRESENT_MODE_FIFO_KHR };
+#else
+    VkPresentModeKHR present_modes[] = {VK_PRESENT_MODE_FIFO_KHR};
+#endif
+    wd->PresentMode = ImGui_ImplVulkanH_SelectPresentMode(g_PhysicalDevice, wd->Surface,
+                                                          present_modes,
+                                                          IM_ARRAYSIZE(present_modes));
+
+    //创建交换链，渲染通道，帧缓冲，等等
+    assert(g_MinImageCount>=2);
+    ImGui_ImplVulkanH_CreateOrResizeWindow(g_Instance, g_PhysicalDevice, g_Device, wd,
+                                           g_QueueFamily, g_Allocator, width, height,
+                                           g_MinImageCount);
+}
+
+static ImGuiIO& SetupImgui(GLFWwindow* window, ImGui_ImplVulkanH_Window* wd)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -336,7 +466,121 @@ static ImGuiIO& SetupImgui(GLFWwindow* window)
     init_info.Allocator                 = g_Allocator;
     init_info.CheckVkResultFn           = check_vk_result;
     ImGui_ImplVulkan_Init(&init_info);
-    //TODO
 
     return io;
+}
+
+static void FrameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data)
+{
+    VkResult err;
+
+    VkSemaphore image_acquired_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].
+        ImageAcquiredSemaphore;
+    VkSemaphore render_complete_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].
+        RenderCompleteSemaphore;
+    err = vkAcquireNextImageKHR(g_Device, wd->Swapchain, UINT64_MAX, image_acquired_semaphore,
+                                VK_NULL_HANDLE, &wd->FrameIndex);
+    if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
+    {
+        g_SwapChainRebuild = true;
+        return;
+    }
+    check_vk_result(err);
+
+    ImGui_ImplVulkanH_Frame* fd = &wd->Frames[wd->FrameIndex];
+    {
+        err = vkWaitForFences(g_Device, 1, &fd->Fence, VK_TRUE, UINT64_MAX);
+        check_vk_result(err);
+
+        err = vkResetFences(g_Device, 1, &fd->Fence);
+        check_vk_result(err);
+    }
+    {
+        err = vkResetCommandPool(g_Device, fd->CommandPool, 0);
+        check_vk_result(err);
+        VkCommandBufferBeginInfo info = {};
+        info.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        err = vkBeginCommandBuffer(fd->CommandBuffer, &info);
+        check_vk_result(err);
+    }
+    {
+        VkRenderPassBeginInfo info    = {};
+        info.sType                    = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        info.renderPass               = wd->RenderPass;
+        info.framebuffer              = fd->Framebuffer;
+        info.renderArea.extent.width  = wd->Width;
+        info.renderArea.extent.height = wd->Height;
+        info.clearValueCount          = 1;
+        info.pClearValues             = &wd->ClearValue;
+        vkCmdBeginRenderPass(fd->CommandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
+    }
+
+    // Record dear imgui primitives into command buffer
+    ImGui_ImplVulkan_RenderDrawData(draw_data, fd->CommandBuffer);
+
+    //提交Vulkan渲染指令
+    //......
+
+    // Submit command buffer
+    vkCmdEndRenderPass(fd->CommandBuffer);
+    {
+        VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        VkSubmitInfo         info       = {};
+        info.sType                      = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        info.waitSemaphoreCount         = 1;
+        info.pWaitSemaphores            = &image_acquired_semaphore;
+        info.pWaitDstStageMask          = &wait_stage;
+        info.commandBufferCount         = 1;
+        info.pCommandBuffers            = &fd->CommandBuffer;
+        info.signalSemaphoreCount       = 1;
+        info.pSignalSemaphores          = &render_complete_semaphore;
+
+        err = vkEndCommandBuffer(fd->CommandBuffer);
+        check_vk_result(err);
+        err = vkQueueSubmit(g_Queue, 1, &info, fd->Fence);
+        check_vk_result(err);
+    }
+}
+
+static void FramePresent(ImGui_ImplVulkanH_Window* wd)
+{
+    if (g_SwapChainRebuild) { return; }
+
+    VkSemaphore render_complete_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].
+        RenderCompleteSemaphore;
+    VkPresentInfoKHR info   = {};
+    info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    info.waitSemaphoreCount = 1;
+    info.pWaitSemaphores    = &render_complete_semaphore;
+    info.swapchainCount     = 1;
+    info.pSwapchains        = &wd->Swapchain;
+    info.pImageIndices      = &wd->FrameIndex;
+
+    VkResult err = vkQueuePresentKHR(g_Queue, &info);
+    if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
+    {
+        g_SwapChainRebuild = true;
+        return;
+    }
+    check_vk_result(err);
+    wd->SemaphoreIndex = (wd->SemaphoreIndex + 1) % wd->SemaphoreCount;
+}
+
+static void CleanupVulkan()
+{
+    //销毁vulkan窗口
+    ImGui_ImplVulkanH_DestroyWindow(g_Instance, g_Device, &g_MainWindowData, g_Allocator);
+
+    vkDestroyDescriptorPool(g_Device, g_DescriptorPool, g_Allocator);
+
+#ifdef APP_USE_VULKAN_DEBUG_REPORT
+    // Remove the debug report callback
+    auto f_vkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT)
+        vkGetInstanceProcAddr(g_Instance, "vkDestroyDebugReportCallbackEXT");
+    f_vkDestroyDebugReportCallbackEXT(g_Instance, g_DebugReport, g_Allocator);
+#endif // APP_USE_VULKAN_DEBUG_REPORT
+
+    vkDestroyDevice(g_Device, g_Allocator);
+    vkDestroyInstance(g_Instance, g_Allocator);
 }
