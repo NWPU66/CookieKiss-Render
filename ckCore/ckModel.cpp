@@ -5,8 +5,7 @@ void ckMesh::drawMesh() const
     //检查有没有挂载Shader
     if (!shader)
     {
-        debugLog(ckDebugLevel::HINT,
-                 "No shader attached to mesh, use default shader instead!");
+        debugLog("No shader attached to mesh, use default shader instead!", HINT);
         // TODO 创建一个默认的shader
     }
 
@@ -15,7 +14,6 @@ void ckMesh::drawMesh() const
 
 ckModel::ckModel(const char* path)
 {
-    debugLog();
     loadModelFromFile(path);
 }
 
