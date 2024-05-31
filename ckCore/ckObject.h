@@ -18,5 +18,5 @@ public:
         ERROR = "ERROR"
     };
 
-    void debugLog(const char* message, const ckDebugLevel debugLevel = NONE) const;
+    inline void debugLog(const char* message, const ckDebugLevel debugLevel = NONE) const;
 };

@@ -1,6 +1,6 @@
 #include "ckObject.h"
 
-void ckObject::debugLog(const char* message, const ckDebugLevel debugLevel) const
+inline void ckObject::debugLog(const char* message, const ckDebugLevel debugLevel) const
 {
     if (!message || strlen(message) == 0) { return; }
     std::string head = (objName.empty() ? "Unknown" : objName) + "::";
