@@ -180,7 +180,6 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <VcpkgUseStatic>true</VcpkgUseStatic>
     <VcpkgInstalledDir>E:\vcpkg</VcpkgInstalledDir>
   </PropertyGroup>
 </Project>

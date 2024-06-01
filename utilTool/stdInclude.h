@@ -13,5 +13,7 @@
 
 //glog
 // #define GLOG_NO_ABBREVIATED_SEVERITIES
+// #pragma comment(lib, "glog.dll")
+// #define GLOG_USE_GLOG_EXPORT
 // #include "glog/logging.h"
-// #pragma comment(lib, "glog.lib")
+
