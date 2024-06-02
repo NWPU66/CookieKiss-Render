@@ -1,12 +1,12 @@
 #pragma once
-#include "stdInclude.h"
+#include "assimp/scene.h"
 #include "ckObject.h"
 #include "ckShader.h"
+#include "stdInclude.h"
 
-class ckMesh : ckObject
-{
+class ckMesh : ckObject {
 private:
-    std::shared_ptr<ckShader> shader; //shader可以是共享的
+    std::shared_ptr<ckShader> shader;  // shader可以是共享的
 
 public:
     ckMesh();
@@ -16,8 +16,7 @@ public:
     void drawMesh() const;
 };
 
-class ckModel : ckObject
-{
+class ckModel : ckObject {
 private:
     std::vector<std::unique_ptr<ckMesh>> meshes;
     std::vector<std::string>             textureLoaded;

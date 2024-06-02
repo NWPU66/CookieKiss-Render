@@ -10,6 +10,7 @@
 #include <iostream>
 #include <memory>
 #include <exception>
+#include <limits>
 
 //glog
 // #define GLOG_NO_ABBREVIATED_SEVERITIES
