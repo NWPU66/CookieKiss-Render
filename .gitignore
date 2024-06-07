@@ -39,4 +39,4 @@
 build/
 x64/
 
-3rdparty/
+# 3rdparty/
