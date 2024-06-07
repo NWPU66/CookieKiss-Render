@@ -1,5 +1,5 @@
 # CookieKiss-Render
-![alt text](Asset/stdTexture/AI3_ae_00000.png)
+![alt text](asset/stdTexture/AI3_ae_00000.png)
 
 ---
 ## 项目介绍 Intro
