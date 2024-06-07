@@ -33,6 +33,7 @@
 
 # temp file
 .vs/
+.vscode/
 # build folder
 build/
 x64/
