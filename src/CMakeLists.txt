@@ -12,7 +12,6 @@ subdirs(
 find_package(glm CONFIG REQUIRED)
 add_executable(helloworld helloworld.cpp)
 target_include_directories(helloworld PRIVATE
-    ${imgui_INCLUDE}
     ${VCPKG_INCLUDE_DIR}
     ${SRC_DIR})
 target_link_libraries(helloworld PRIVATE 

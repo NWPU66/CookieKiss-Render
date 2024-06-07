@@ -7,7 +7,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include "stdInclude.h"
+#include "util/stdInclude.h"
 ImGuiIO& setupImgui(GLFWwindow* window, const char* glsl_version);
 
 int main(int32_t argc, char** argv)

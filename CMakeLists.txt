@@ -14,4 +14,5 @@ project(CookieKissRender
 subdirs(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty)
 subdirs(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
+# install path
 set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/install)
