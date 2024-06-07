@@ -34,6 +34,7 @@
 # temp file
 .vs/
 .vscode/
+.idea/
 # build folder
 build/
 x64/
