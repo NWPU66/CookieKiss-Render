@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "limits": "cpp",
-        "*.tcc": "cpp",
-        "fstream": "cpp",
-        "sstream": "cpp"
-    },
-    "C_Cpp.default.compilerPath": "E:\\mingw64\\bin\\g++.exe"
-}
