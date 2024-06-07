@@ -11,22 +11,6 @@
 ## 快速上手 Quick Start
 
 ### 构建与编译
-1. 准备必要的第三方库：glfw3、imgui、glm、vulkan
-
-1.1 使用vcpkg
-```
-./vcpkg.exe install glfw3:x64-windowsimgui:x64-windows glm:x64-windows vulkan:x64-windows
-```
-1.2 手动链接
-在vs或rider中，右键项目，选择属性，选择链接器，选择输入，选择加依赖项，添加库的路径。
-```
-/path/to/your/lib/glfw3.lib
-/path/to/your/lib/imgui.lib
-/path/to/your/lib/glm.lib
-/path/to/your/lib/vulkan-1.lib
-```
-
-2. 编译
 
 ### 运行
 
