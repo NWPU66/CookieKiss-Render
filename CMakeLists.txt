@@ -1,11 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 
-set(CMAKE_TOOLCHAIN_FILE 
-    ${CMAKE_TOOLCHAIN_FILE} "E:/vcpkg/scripts/buildsystems/vcpkg.cmake")
+set(CMAKE_TOOLCHAIN_FILE "E:/vcpkg/scripts/buildsystems/vcpkg.cmake")
 set(VCPKG_INCLUDE_DIR "E:/vcpkg/installed/x64-windows/include")
 
-set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install")
-message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_STANDARD 17)
 project(CookieKissRender
@@ -15,4 +13,8 @@ project(CookieKissRender
     LANGUAGES CXX)
 
 # add subdirectory
+subdirs(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty)
 subdirs(${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/install)
+message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")

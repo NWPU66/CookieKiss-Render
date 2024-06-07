@@ -9,7 +9,6 @@
  */
 
 // C Library
-#include <stdexcpt.h>
 #include <stdio.h>
 #include <stdlib.h>
 

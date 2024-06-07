@@ -10,9 +10,13 @@ subdirs(
 
 # helloworld programe
 find_package(glm CONFIG REQUIRED)
-find_package(imgui CONFIG REQUIRED)
 add_executable(helloworld helloworld.cpp)
 target_include_directories(helloworld PRIVATE
+    ${imgui_INCLUDE}
     ${VCPKG_INCLUDE_DIR}
     ${SRC_DIR})
-target_link_libraries(helloworld PRIVATE util glm::glm imgui::imgui)
+target_link_libraries(helloworld PRIVATE 
+    imgui
+    util 
+    glm::glm)
+install(TARGETS helloworld RUNTIME DESTINATION ./)
