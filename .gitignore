@@ -36,3 +36,5 @@
 # build folder
 build/
 x64/
+
+3rdparty/
