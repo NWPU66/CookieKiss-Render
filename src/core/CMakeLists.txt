@@ -6,3 +6,6 @@ target_include_directories(ckCore PUBLIC
     ${SRC_DIR})
 target_link_libraries(ckCore PUBLIC 
     util)
+install(TARGETS ckCore 
+    LIBRARY DESTINATION ./ckCore
+    ARCHIVE DESTINATION ./ckCore)
