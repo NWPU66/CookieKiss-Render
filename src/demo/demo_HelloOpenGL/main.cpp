@@ -1,13 +1,13 @@
+#include "util/stdInclude.h"
+
 #include "glad/glad.h"
 // glad first
 #include "GLFW/glfw3.h"
-#include "SimpleHardcodeGeom.h"
-#include "assimp/light.h"
-#include "ckShader.h"
+
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include "util/stdInclude.h"
+
 ImGuiIO& setupImgui(GLFWwindow* window, const char* glsl_version);
 
 int main(int32_t argc, char** argv)
@@ -17,12 +17,12 @@ int main(int32_t argc, char** argv)
     const char* glsl_version = "#version 460";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // 3.0+ only，是否兼容未来版本
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);  // 3.0+ only，是否兼容未来版本
     GLFWwindow* window = glfwCreateWindow(1280, 960, "Demo", nullptr, nullptr);
     if (!window) { return EXIT_FAILURE; }
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(1); // Enable vsync，垂直同步
+    glfwSwapInterval(1);  // Enable vsync，垂直同步
 
     // 初始化GLAD
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -38,12 +38,6 @@ int main(int32_t argc, char** argv)
     bool   show_demo_window    = true;
     bool   show_another_window = false;
     ImVec4 clear_color         = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-    // 准备要绘制的三角形
-    GLuint triangleVAO, triangleVBO, triangleEBO;
-    SimpleHardcodeGeom::createTriangleObj(triangleVAO, triangleVBO, triangleEBO);
-    ckShader triangleShader("./triangle.vs.glsl", "./triangle.fs.glsl");
-    triangleShader.use();
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -99,11 +93,6 @@ int main(int32_t argc, char** argv)
                      clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // OpenGL渲染指令
-        glBindVertexArray(triangleVAO);
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
-
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
     }
@@ -125,12 +114,12 @@ ImGuiIO& setupImgui(GLFWwindow* window, const char* glsl_version)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    (void)io;                                             // 将 io 转换为 void 类型并丢弃，从而避免编译器警告？？？
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+    (void)io;  // 将 io 转换为 void 类型并丢弃，从而避免编译器警告？？？
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
 
     // Setup Dear ImGui style
-    ImGui::StyleColorsDark(); // ImGui::StyleColorsLight();
+    ImGui::StyleColorsDark();  // ImGui::StyleColorsLight();
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);

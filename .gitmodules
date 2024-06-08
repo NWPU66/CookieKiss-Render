@@ -4,3 +4,6 @@
 [submodule "bullet3"]
 	path = 3rdparty/bullet3
 	url = https://github.com/bulletphysics/bullet3.git
+[submodule "glad"]
+	path = 3rdparty/glad
+	url = https://github.com/premake-libs/glad.git
