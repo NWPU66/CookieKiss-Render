@@ -4,7 +4,7 @@
 ---
 ## 项目介绍 Intro
 基于OpenGL的个人渲染器项目
-- IntegratedEdittingEnv是集成式编辑终端（类似Blender、UE等），能够实现编辑器的简单操作功能、图形渲染以及场景物体管理。
+- IntegratedEdittingTerminal（IET）是集成式编辑终端（类似Blender、UE等），能够实现编辑器的简单操作功能、图形渲染以及场景物体管理。
 - demo则是小项目的演示，包含：简单技术实现和来自其他仓库的示例代码。
 
 ---
