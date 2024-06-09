@@ -4,11 +4,19 @@
 #include <cstdlib>
 
 #include <iostream>
+#include <queue>
+#include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include <glad/glad.h>  //glad first
 
+#include "assimp/Importer.hpp"
+#include "assimp/postprocess.h"
+#include "assimp/scene.h"
+#include "glog/logging.h"
+#include "stb_image.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -44,21 +52,38 @@ struct Texture
 
 class Mesh {
 private:
-    std::vector<Vertex>   vertices;
-    std::vector<uint32_t> indices;
-    std::vector<Texture>  textures;
-    uint32_t              vao, vbo, ebo;
-
-    void setup_mesh();
+    std::vector<Texture> textures;
+    int32_t              indices_num;
+    uint32_t             vao, vbo, ebo;
 
 public:
-    explicit Mesh(const std::vector<Vertex>&  vertices,
-                  const std::vector<GLuint>&  indices,
-                  const std::vector<Texture>& textures);
+    Mesh(const aiMesh* mesh, std::vector<Texture>& textures);
+    ~Mesh();
 
-    void draw(const Shader& shader) const;
+    Mesh(const Mesh&)            = delete;
+    Mesh& operator=(const Mesh&) = delete;
+    Mesh(Mesh&&)                 = delete;
+    Mesh& operator=(Mesh&&)      = delete;
+
+    void                   draw(const Shader& shader) const;
+    [[nodiscard]] uint32_t get_vao() const;
 };
 
-class Model {};
+class Model {
+private:
+    std::vector<Mesh>           meshes;
+    std::string                 model_directory;
+    std::unordered_set<Texture> textures_loaded;
+
+    void                 processNode(const aiNode* node, const aiScene* scene);
+    std::vector<Texture> loadMaterialTextures(const aiMaterial*  material,
+                                              aiTextureType      type,
+                                              const std::string& typeName);
+    static uint32_t      loadTextureFromFile(const std::string& file_path, bool gamma_correction);
+
+public:
+    explicit Model(const std::string& model_path);
+    void draw(const Shader& shader) const;
+};
 
 }  // namespace ck
