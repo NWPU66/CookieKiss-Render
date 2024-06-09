@@ -1,10 +1,16 @@
 #include "model.h"
-#include "shader.h"
-#include <algorithm>
-#include <assimp/material.h>
-#include <cstdint>
+
+#include <queue>
 #include <string>
 #include <vector>
+
+#include "assimp/Importer.hpp"
+#include "assimp/postprocess.h"
+#include "assimp/scene.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+#include "shader.h"
 
 ck::Mesh::Mesh(const aiMesh* mesh, std::vector<Texture>& textures) : textures(std::move(textures))
 {
@@ -186,9 +192,9 @@ void ck::Model::processNode(const aiNode* node, const aiScene* scene)
     }
 }
 
-std::vector<ck::Texture> ck::Model::loadMaterialTextures(const aiMaterial*  material,
-                                                         const aiTextureType      type,
-                                                         const std::string& typeName)
+std::vector<ck::Texture> ck::Model::loadMaterialTextures(const aiMaterial*   material,
+                                                         const aiTextureType type,
+                                                         const std::string&  typeName)
 {
     std::vector<Texture> textures;
     for (int i = 0; i < material->GetTextureCount(type); i++)
@@ -214,7 +220,7 @@ std::vector<ck::Texture> ck::Model::loadMaterialTextures(const aiMaterial*  mate
                 loadTextureFromFile(model_directory + '/' + std::string(texture_path.C_Str()),
                                     (type == aiTextureType_DIFFUSE));
             textures.emplace_back(texture_id, typeName, std::string(texture_path.C_Str()));
-            textures_loaded.emplace(texture_id, typeName, std::string(texture_path.C_Str()));
+            textures_loaded.emplace_back(texture_id, typeName, std::string(texture_path.C_Str()));
         }
     }
 

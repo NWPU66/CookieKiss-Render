@@ -4,6 +4,8 @@ find_package(imgui CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(glog CONFIG REQUIRED)
+find_package(assimp CONFIG REQUIRED)
+find_package(Stb REQUIRED)
 file(GLOB SRC ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file(GLOB HEADER ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 add_executable(demo_ShadowWithMutiLights 
@@ -12,6 +14,7 @@ add_executable(demo_ShadowWithMutiLights
     ${SRC}
     ${HEADER})
 target_include_directories(demo_ShadowWithMutiLights PRIVATE
+    ${Stb_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/3rdparty/imgui/backends
     ${VCPKG_INCLUDE_DIR}
     ${SRC_DIR})
@@ -19,6 +22,7 @@ target_link_libraries(demo_ShadowWithMutiLights PRIVATE
     imgui::imgui
     glog::glog
     glfw
+    assimp::assimp
     glm::glm
     glad::glad
     util)

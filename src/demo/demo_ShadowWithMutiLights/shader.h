@@ -28,10 +28,10 @@ public:
            const std::string& geometryShader_path = "");
     ~Shader();
 
-    Shader(const Shader&)            = delete;
-    Shader& operator=(const Shader&) = delete;
-    Shader(Shader&&)                 = delete;
-    Shader& operator=(Shader&&)      = delete;
+    Shader(const Shader&)            = default;
+    Shader& operator=(const Shader&) = default;
+    Shader(Shader&&)                 = default;
+    Shader& operator=(Shader&&)      = default;
 
     void use() const;
     void setParameter(const std::string& name, const bool& value) const;

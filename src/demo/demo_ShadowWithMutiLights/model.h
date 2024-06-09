@@ -1,24 +1,10 @@
 #pragma once
 
-#include <cstdint>
-#include <cstdlib>
-
-#include <iostream>
-#include <queue>
 #include <string>
-#include <unordered_set>
-#include <utility>
 #include <vector>
 
-#include <glad/glad.h>  //glad first
-
-#include "assimp/Importer.hpp"
-#include "assimp/postprocess.h"
+#define STB_IMAGE_IMPLEMENTATION
 #include "assimp/scene.h"
-#include "glog/logging.h"
-#include "stb_image.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "shader.h"
 
@@ -60,10 +46,10 @@ public:
     Mesh(const aiMesh* mesh, std::vector<Texture>& textures);
     ~Mesh();
 
-    Mesh(const Mesh&)            = delete;
-    Mesh& operator=(const Mesh&) = delete;
-    Mesh(Mesh&&)                 = delete;
-    Mesh& operator=(Mesh&&)      = delete;
+    Mesh(const Mesh&)            = default;
+    Mesh& operator=(const Mesh&) = default;
+    Mesh(Mesh&&)                 = default;
+    Mesh& operator=(Mesh&&)      = default;
 
     void                   draw(const Shader& shader) const;
     [[nodiscard]] uint32_t get_vao() const;
@@ -71,9 +57,9 @@ public:
 
 class Model {
 private:
-    std::vector<Mesh>           meshes;
-    std::string                 model_directory;
-    std::unordered_set<Texture> textures_loaded;
+    std::vector<Mesh>    meshes;
+    std::string          model_directory;
+    std::vector<Texture> textures_loaded;
 
     void                 processNode(const aiNode* node, const aiScene* scene);
     std::vector<Texture> loadMaterialTextures(const aiMaterial*  material,
@@ -87,3 +73,9 @@ public:
 };
 
 }  // namespace ck
+
+/**FIXME - 错题本
+unordered_set 需要Hash作为元素的索引
+set 需要排序作为元素的索引
+而 Texture 既没有 Hash 算法，也没有排序算法，所以不能直接使用这两个容器
+ */
