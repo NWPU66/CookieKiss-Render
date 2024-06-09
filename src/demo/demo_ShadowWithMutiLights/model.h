@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -21,6 +22,10 @@ struct Vertex
         : position(position), normal(normal), texCoord(texCoord)
     {
     }
+    /**FIXME - 错题本
+    trivially-copyable 平凡可复制对象：本身可以使用memcpy复制内存
+    memcpy是内存逐位复制，这个过程本身非常快，不需要使用std::move。
+     */
 };
 
 struct Texture
@@ -30,7 +35,7 @@ struct Texture
     std::string path;
 
     Texture() = delete;
-    Texture(uint32_t id, const std::string type, const std::string path)
+    Texture(uint32_t id, std::string  type, std::string  path)
         : id(id), type(std::move(type)), path(std::move(path))
     {
     }

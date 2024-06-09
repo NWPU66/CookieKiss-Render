@@ -40,7 +40,7 @@ int main(int32_t argc, char** argv)
     ImVec4 clear_color         = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Main loop
-    while (!glfwWindowShouldClose(window))
+    while (glfwWindowShouldClose(window) == 0)
     {
         glfwPollEvents();
 
@@ -66,7 +66,7 @@ int main(int32_t argc, char** argv)
             ImGui::SliderFloat("float", &f, 0, 1);
             ImGui::ColorEdit3("clear color", (float*)&clear_color);
 
-            if (ImGui::Button("Button")) counter++;
+            if (ImGui::Button("Button")) { counter++; }
             ImGui::SameLine();
             ImGui::Text("counter = %d", counter);
 

@@ -7,6 +7,7 @@
  */
 
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
 
 #include <array>
@@ -40,12 +41,11 @@ int main(int argc, char** argv)
     // init glad
     if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) == 0)
     {
-        window.~ImguiGLfwWindowBase();
         throw std::runtime_error("Failed to initialize GLAD");
     }
 
     LOG(INFO) << "init successfully!";
-    const ImGuiIO* const imgui_io = window.get_imgui_io();
+    const ImGuiIO* imgui_io = window.get_imgui_io();
 
     // opengl setting
     glViewport(0, 0, window_width, window_height);
@@ -63,13 +63,20 @@ int main(int argc, char** argv)
             ImGui::NewFrame();
 
             ImGui::Begin("rendering settings");
+            ImGui::Text("This is some useful text.");
             ImGui::ColorEdit3("clear color", clear_color.data());
             ImGui::End();
         }
+        ImGui::Render();
 
         // OpenGL rendering goes here
         {
             // ......
+            int32_t width  = 0;
+            int32_t height = 0;
+            glfwGetFramebufferSize(window.get_window(), &width, &height);
+            glViewport(0, 0, width, height);
+            glClearColor(clear_color[0], clear_color[1], clear_color[2], clear_color[3]);
             glClear(GL_COLOR_BUFFER_BIT);
         }
 
