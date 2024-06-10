@@ -4,10 +4,10 @@
 #include <utility>
 #include <vector>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "assimp/scene.h"
+#include <assimp/scene.h>
 
 #include "shader.h"
+#include "core/ck_debug.h"
 
 namespace ck {
 
@@ -35,7 +35,7 @@ struct Texture
     std::string path;
 
     Texture() = delete;
-    Texture(uint32_t id, std::string  type, std::string  path)
+    Texture(uint32_t id, std::string type, std::string path)
         : id(id), type(std::move(type)), path(std::move(path))
     {
     }

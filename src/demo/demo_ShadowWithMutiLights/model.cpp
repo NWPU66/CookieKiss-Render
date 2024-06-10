@@ -1,14 +1,15 @@
 #include "model.h"
 
+#include <GL/gl.h>
+#include <iostream>
 #include <queue>
 #include <string>
 #include <vector>
 
-#include "assimp/Importer.hpp"
-#include "assimp/postprocess.h"
-#include "assimp/scene.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
+#include <stb_image.h>
 
 #include "shader.h"
 
@@ -22,11 +23,8 @@ ck::Mesh::Mesh(const aiMesh* mesh, std::vector<Texture>& textures) : textures(st
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
-    // 生成顶点数据
-    glBufferSubData(GL_ARRAY_BUFFER, 0, mesh->mNumVertices * sizeof(aiVector3D), mesh->mVertices);
-    glBufferSubData(GL_ARRAY_BUFFER, mesh->mNumVertices * sizeof(aiVector3D),
-                    mesh->mNumVertices * sizeof(aiVector3D), mesh->mNormals);
-    // deal with texcoord
+    // 预计算texCoords和indices，并计算缓冲区的总大小
+    // texCoords
     std::vector<glm::vec2> mesh_texCoords;
     if (mesh->HasTextureCoords(0))
     {
@@ -40,10 +38,7 @@ ck::Mesh::Mesh(const aiMesh* mesh, std::vector<Texture>& textures) : textures(st
         }
     }
     else { mesh_texCoords.resize(mesh->mNumVertices, glm::vec2(0.0F, 0.0F)); }
-    glBufferSubData(GL_ARRAY_BUFFER, 2 * mesh->mNumVertices * sizeof(aiVector3D),
-                    mesh_texCoords.size() * sizeof(glm::vec2), mesh_texCoords.data());
-
-    // 设置ebo
+    // indices
     std::vector<uint32_t> indices;
     for (int i = 0; i < mesh->mNumFaces; i++)
     {
@@ -54,10 +49,30 @@ ck::Mesh::Mesh(const aiMesh* mesh, std::vector<Texture>& textures) : textures(st
         }
     }
     indices_num = indices.size();
+
+    // 计算缓冲区的总大小
+    GLsizeiptr total_vertex_buffer_size =
+        mesh->mNumVertices * sizeof(aiVector3D)       // 顶点位置
+        + mesh->mNumVertices * sizeof(aiVector3D)     // 顶点法向
+        + mesh_texCoords.size() * sizeof(glm::vec2);  // 顶点纹理坐标
+    GLsizeiptr total_element_buffer_size = indices_num * sizeof(uint32_t);
+    // 申请
+    glBufferData(GL_ARRAY_BUFFER, total_vertex_buffer_size, nullptr, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, total_element_buffer_size, nullptr, GL_STATIC_DRAW);
+    // 向缓冲区填充顶点数据
+    glBufferSubData(GL_ARRAY_BUFFER, 0, mesh->mNumVertices * sizeof(aiVector3D), mesh->mVertices);
+    glBufferSubData(GL_ARRAY_BUFFER, mesh->mNumVertices * sizeof(aiVector3D),
+                    mesh->mNumVertices * sizeof(aiVector3D), mesh->mNormals);
+    glBufferSubData(GL_ARRAY_BUFFER, 2 * mesh->mNumVertices * sizeof(aiVector3D),
+                    mesh_texCoords.size() * sizeof(glm::vec2), mesh_texCoords.data());
+    // 向缓冲区填充数据
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_num * sizeof(uint32_t), indices.data(),
                  GL_STATIC_DRAW);
+    /**FIXME - 错误定位：//生成顶点数据（26~46）
+    在使用glBufferSubData填充数据之前，要先申请一片缓冲区（glBufferData）。
+    */
 
-    // 设置VBO中数据的解读方式
+    // 设置VAO中数据的解读方式
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0,
                           (void*)(mesh->mNumVertices * sizeof(aiVector3D)));
@@ -71,6 +86,8 @@ ck::Mesh::Mesh(const aiMesh* mesh, std::vector<Texture>& textures) : textures(st
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    GL_CHECK();
 }
 
 ck::Mesh::~Mesh()
@@ -109,8 +126,10 @@ void ck::Mesh::draw(const Shader& shader) const
     // glDrawElementsInstanced(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0, instanceNum);
     glBindVertexArray(0);
 
-    // always good practice to set everything back to defaults once configured.
-    glActiveTexture(GL_TEXTURE0);
+    // always good practice to set everything back to defaults
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    GL_CHECK();
 }
 
 [[nodiscard]] uint32_t ck::Mesh::get_vao() const
@@ -157,6 +176,7 @@ ck::Model::Model(const std::string& model_path)
     }
 
     // NOTE - 内存的释放由Assimp::Importer importer对象的析构自动完成
+    GL_CHECK();
 }
 
 void ck::Model::processNode(const aiNode* node, const aiScene* scene)
@@ -190,6 +210,7 @@ void ck::Model::processNode(const aiNode* node, const aiScene* scene)
 
         meshes.emplace_back(scene->mMeshes[node->mMeshes[i]], textures);
     }
+    GL_CHECK();
 }
 
 std::vector<ck::Texture> ck::Model::loadMaterialTextures(const aiMaterial*   material,
@@ -223,7 +244,7 @@ std::vector<ck::Texture> ck::Model::loadMaterialTextures(const aiMaterial*   mat
             textures_loaded.emplace_back(texture_id, typeName, std::string(texture_path.C_Str()));
         }
     }
-
+    GL_CHECK();
     return textures;
 }
 
@@ -285,14 +306,18 @@ uint32_t ck::Model::loadTextureFromFile(const std::string& file_path, const bool
 
     glBindTexture(GL_TEXTURE_2D, 0);
     stbi_image_free(data);  // 释放图片的内存
+    GL_CHECK();
     return texture_id;
 }
 
 void ck::Model::draw(const Shader& shader) const
 {
     shader.use();
+    GLenum last_active_texture;
+    glGetIntegerv(GL_ACTIVE_TEXTURE, (GLint*)&last_active_texture);
     for (const auto& mesh : meshes)
     {
         mesh.draw(shader);
     }
+    GL_CHECK();
 }

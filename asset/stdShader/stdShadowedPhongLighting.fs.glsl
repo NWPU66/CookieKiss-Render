@@ -22,17 +22,21 @@ layout(std140,binding=0)uniform lightGroup{
     Light lights[MAX_LIGHTS_NUM];
 };
 uniform sampler2D shadowMap;
+uniform samplerCube depthMap;
 
 uniform vec3 cameraPos;
 uniform sampler2D texture0;
 uniform samplerCube skybox;
 uniform mat4 lightSpaceMatrix;
+uniform vec3 lightPos;
+uniform float far_plane;
 
 //output
 out vec4 fragColor;
 
 vec3 Lighting(int i);
 float calculateShadow();
+float calculatePointShadow();
 
 void main(){
     vec3 outputColor=vec3(0.f);
@@ -40,9 +44,9 @@ void main(){
         outputColor+=Lighting(i);
     }
     vec3 ambient=texture(skybox,reflect(fs_in.globalPos-cameraPos,fs_in.globalNormal)).xyz;
-    fragColor=vec4(outputColor*calculateShadow(),1.f);
+    fragColor=vec4(outputColor,1.f);
     
-    // fragColor=vec4(vec3(calculateShadow()),1);
+    // fragColor=vec4(vec3(calculatePointShadow()),1);
 }
 
 vec3 Lighting(int i){
@@ -114,4 +118,22 @@ float calculateShadow(){
     }
     
     return shadow/9;
+}
+
+float calculatePointShadow(){
+    vec3 displacementToLight=lightPos-fs_in.globalPos;
+    float distanceToLight=length(displacementToLight)/far_plane;
+    
+    float bias=.0001,s_col=.1,l_col=.5;
+    float offset=.01,samples=4.,shadow=0.;
+    for(float x=-offset;x<+offset;x+=offset/(samples*.5)){
+        for(float y=-offset;y<offset;y+=offset/(samples*.5)){
+            for(float z=-offset;z<offset;z+=offset/(samples*.5)){
+                float cloestDepth=texture(depthMap,-displacementToLight+vec3(x,y,z)).r;
+                //FIXME - displacementToLight是指向光源的向量，采样的时候要反向
+                shadow+=(distanceToLight-bias>cloestDepth)?s_col:l_col;
+            }
+        }
+    }
+    return shadow/pow(samples,3);
 }

@@ -2,16 +2,13 @@
 
 #include <cstdint>
 
-#include <fstream>
-#include <iostream>
-#include <sstream>
 #include <string>
 
-#include "glad/glad.h"
+#include <glad/glad.h>
 
-#include "glm/glm.hpp"
-#include "glm/gtc/type_ptr.hpp"
-#include "glog/logging.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glog/logging.h>
 
 namespace ck {
 

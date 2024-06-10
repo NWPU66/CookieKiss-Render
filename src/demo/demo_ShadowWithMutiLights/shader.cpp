@@ -1,5 +1,11 @@
 #include "shader.h"
+
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #include <string>
+
+#include "core/ck_debug.h"
 
 ck::Shader::Shader(const std::string& vertexShader_path,
                    const std::string& fragmentShader_path,
@@ -87,6 +93,7 @@ ck::Shader::Shader(const std::string& vertexShader_path,
     if (use_geomShader) { glDeleteShader(geomShader); }
 
     use();
+    GL_CHECK();
 }
 
 ck::Shader::~Shader()

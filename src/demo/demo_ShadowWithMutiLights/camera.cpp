@@ -7,20 +7,29 @@
 #include <glm/ext/vector_float3.hpp>
 
 ck::Camera::Camera(const glm::vec3& position, const glm::vec3& world_up_vec)
-    : position(position), world_up_vec(world_up_vec), yaw(-90.0F), pitch(0.0F),
-      front_vec(glm::vec3(0.0F, 0.0F, -1.0F)), move_speed(DEFAULT_MOVE_SPEED),
+    : position(position), world_up_vec(world_up_vec), yaw(90.0F), pitch(0.0F),
+      front_vec(glm::vec3(0)), move_speed(DEFAULT_MOVE_SPEED),
       mouse_sensitivity(DEFAULT_MOUSE_SENSITIVITY), camera_zoom(45.0F)
 {
     update_camera_vector();
 }
 
-[[nodiscard]] inline glm::mat4 ck::Camera::get_view_matrix() const
+[[nodiscard]] glm::vec3 ck::Camera::get_position() const
+{
+    return position;
+}
+
+[[nodiscard]] float ck::Camera::get_camera_zoom() const
+{
+    return camera_zoom;
+}
+
+[[nodiscard]] glm::mat4 ck::Camera::get_view_matrix() const
 {
     return glm::lookAt(position, position + front_vec, up_vec);
 }
 
-inline void ck::Camera::process_keyboard(const std::array<int32_t, 6>& directions,
-                                         const float                   delta_time)
+void ck::Camera::process_keyboard(const std::array<int32_t, 6>& directions, const float delta_time)
 {
     float velocity = move_speed * delta_time;
     position += front_vec * velocity * static_cast<float>(directions[0]);
@@ -31,9 +40,9 @@ inline void ck::Camera::process_keyboard(const std::array<int32_t, 6>& direction
     position -= world_up_vec * velocity * static_cast<float>(directions[5]);
 }
 
-inline void ck::Camera::process_mouse_movement(const float x_offset,
-                                               const float y_offset,
-                                               const bool  constarinPitch)
+void ck::Camera::process_mouse_movement(const float x_offset,
+                                        const float y_offset,
+                                        const bool  constarinPitch)
 {
     if (first_frame_to_view)
     {
@@ -51,17 +60,17 @@ inline void ck::Camera::process_mouse_movement(const float x_offset,
     update_camera_vector();
 }
 
-inline void ck::Camera::process_mouse_scroll(const float y_offset)
+void ck::Camera::process_mouse_scroll(const float y_offset)
 {
     camera_zoom = std::clamp(camera_zoom - y_offset, 1.0F, 45.0F);
 }
 
-inline void ck::Camera::speed_up(bool is_speed_up)
+void ck::Camera::speed_up(bool is_speed_up)
 {
     move_speed = (is_speed_up) ? DEFAULT_MOVE_SPEED * 3 : DEFAULT_MOVE_SPEED;
 }
 
-inline void ck::Camera::update_camera_vector()
+void ck::Camera::update_camera_vector()
 {
     front_vec.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     front_vec.y = sin(glm::radians(pitch));
