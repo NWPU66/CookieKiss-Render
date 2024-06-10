@@ -2,16 +2,10 @@ Checks:
     modernize-*,
     portability-*,
     cppcoreguidelines-*,
-    
     performance-*,
+    readability-*,
+    
     bugprone-*,
     misc-*,
     google-*,
-    readability-*,
-    -readability-function-size,
-    -readability-identifier-naming,
-    -readability-make-unique,
-    -readability-qualified-auto,
-    -readability-redundant-access-specifiers,
-    -readability-redundant-control-flow-nesting,
-    -readability-redundant-declaration,
+
