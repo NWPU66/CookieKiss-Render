@@ -1,6 +1,7 @@
 #include "camera.h"
 
 #include <algorithm>
+#include <iostream>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -9,7 +10,7 @@
 ck::Camera::Camera(const glm::vec3& position, const glm::vec3& world_up_vec)
     : position(position), world_up_vec(world_up_vec), yaw(90.0F), pitch(0.0F),
       front_vec(glm::vec3(0)), move_speed(DEFAULT_MOVE_SPEED),
-      mouse_sensitivity(DEFAULT_MOUSE_SENSITIVITY), camera_zoom(45.0F)
+      mouse_sensitivity(DEFAULT_MOUSE_SENSITIVITY), camera_zoom(45.0F), skip_one_frame_flag(true)
 {
     update_camera_vector();
 }
@@ -29,6 +30,11 @@ ck::Camera::Camera(const glm::vec3& position, const glm::vec3& world_up_vec)
     return glm::lookAt(position, position + front_vec, up_vec);
 }
 
+void ck::Camera::set_skip_one_frame(const bool flag)
+{
+    skip_one_frame_flag = flag;
+}
+
 void ck::Camera::process_keyboard(const std::array<int32_t, 6>& directions, const float delta_time)
 {
     float velocity = move_speed * delta_time;
@@ -44,19 +50,15 @@ void ck::Camera::process_mouse_movement(const float x_offset,
                                         const float y_offset,
                                         const bool  constarinPitch)
 {
-    if (first_frame_to_view)
+    if (skip_one_frame_flag)
     {
-        first_frame_to_view = false;
+        skip_one_frame_flag = false;
         return;
     }
 
     yaw += x_offset * mouse_sensitivity;
     pitch -= y_offset * mouse_sensitivity;
-    if (constarinPitch)
-    {
-        yaw   = std::clamp(yaw, -89.9F, 89.9F);
-        pitch = std::clamp(pitch, -89.9F, 89.9F);
-    }
+    if (constarinPitch) { pitch = std::clamp(pitch, -89.9F, 89.9F); }
     update_camera_vector();
 }
 

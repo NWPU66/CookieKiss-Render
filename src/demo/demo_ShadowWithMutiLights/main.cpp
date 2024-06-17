@@ -42,51 +42,72 @@
 #include "shader.h"
 
 // global variable
-static const std::string    asset_root    = "E:/Study/CodeProj/CookieKiss-Render/asset/";
-static const int32_t        window_width  = 800;
-static const int32_t        window_height = 600;
-static std::array<float, 4> clear_color   = {0.2F, 0.3F, 0.3F, 1.0F};
-static ck::Camera           camera(glm::vec3(1.5F, 1.5F, -5.0F));
-static float                mouse_last_x = 0.0F, mouse_last_y = 0.0F;  // 记录鼠标的位置
-static float                lastFrame = 0.0F, deltaTime = 0.0F;        // 全局时钟
+static const std::string    asset_root  = "E:/Study/CodeProj/CookieKiss-Render/asset/";
+static std::array<float, 4> clear_color = {0.2F, 0.3F, 0.3F, 1.0F};
+static ck::Camera           camera(glm::vec3(0.0F, 0.0F, -5.0F));
 
-inline void framebuffer_size_callback(GLFWwindow* window, int w, int h)
-{
-    glViewport(0, 0, w, h);
-    printf("1");
-}
+/**FIXME - 有关imgui窗口lose focus的问题
+imgui_impl_glfw.cpp中设置了imgui需要glfw的回调函数
+当我从遨游模式回到编辑模式时，我重新设置了glfw的回调函数，导致回调函数和
+最开始imgui设置的回调函数不一致。因此imgui lose focus。
+*/
 
-inline void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+inline void processInput(ck::ImguiGlfwWindowBase& window)
 {
-    camera.process_mouse_movement(xpos - mouse_last_x, ypos - mouse_last_y);
-    mouse_last_x = xpos;
-    mouse_last_y = ypos;
-    printf("2");
-}
+    GLFWwindow*    window_ptr = window.get_window();
+    const ImGuiIO* imgui_io   = window.get_imgui_io();
 
-inline void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-    camera.process_mouse_scroll(yoffset);
-    printf("3");
-}
-
-inline void processInput(GLFWwindow* window)
-{
     // 当Esc按下时，窗口关闭
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { glfwSetWindowShouldClose(window, 1); }
+    if (glfwGetKey(window_ptr, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window_ptr, 1);
+    }
 
-    // 按下Shift时，飞行加速
-    camera.speed_up((glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS));
+    // 根据窗口大小更新glviewport
+    int32_t width  = 0;
+    int32_t height = 0;
+    glfwGetFramebufferSize(window_ptr, &width, &height);
+    glViewport(0, 0, width, height);
 
-    // 处理摄像机移动
-    std::array<int32_t, 6> direction = {0, 0, 0, 0, 0, 0};
-    direction[0]                     = (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) ? 1 : 0;
-    direction[1]                     = (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) ? 1 : 0;
-    direction[2]                     = (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) ? 1 : 0;
-    direction[3]                     = (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) ? 1 : 0;
-    direction[4]                     = (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) ? 1 : 0;
-    direction[5]                     = (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) ? 1 : 0;
-    camera.process_keyboard(direction, deltaTime);
+    // 切换遨游模式和编辑模式
+    if (glfwGetMouseButton(window_ptr, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS &&
+        !window.get_isFlying())
+    {
+        // 按下鼠标右键，并且上一帧不在遨游模式时，进入遨游模式
+        window.set_flying_mode(true);
+
+        // 隐藏光标
+        glfwSetInputMode(window_ptr, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+    else if (glfwGetMouseButton(window_ptr, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE &&
+             window.get_isFlying())
+    {
+        // 松开鼠标右键，并且上一帧在遨游模式中时，回到编译模式
+        window.set_flying_mode(false);
+
+        // 隐藏光标
+        glfwSetInputMode(window_ptr, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }  // 其他情况保持不变
+
+    if (window.get_isFlying())
+    {
+        // 更新摄像机的位置和视场
+        camera.process_mouse_movement(imgui_io->MouseDelta.x, imgui_io->MouseDelta.y);
+        camera.process_mouse_scroll(imgui_io->MouseWheel);
+
+        // 按下Shift时，飞行加速
+        camera.speed_up((glfwGetKey(window_ptr, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS));
+
+        // 处理摄像机移动
+        std::array<int32_t, 6> direction = {0, 0, 0, 0, 0, 0};
+        direction[0] = (glfwGetKey(window_ptr, GLFW_KEY_W) == GLFW_PRESS) ? 1 : 0;
+        direction[1] = (glfwGetKey(window_ptr, GLFW_KEY_S) == GLFW_PRESS) ? 1 : 0;
+        direction[2] = (glfwGetKey(window_ptr, GLFW_KEY_A) == GLFW_PRESS) ? 1 : 0;
+        direction[3] = (glfwGetKey(window_ptr, GLFW_KEY_D) == GLFW_PRESS) ? 1 : 0;
+        direction[4] = (glfwGetKey(window_ptr, GLFW_KEY_E) == GLFW_PRESS) ? 1 : 0;
+        direction[5] = (glfwGetKey(window_ptr, GLFW_KEY_Q) == GLFW_PRESS) ? 1 : 0;
+        camera.process_keyboard(direction, imgui_io->DeltaTime);
+    }
 }
 
 uint32_t create_image_bufferObject(const std::string& file_path,
@@ -160,9 +181,7 @@ int main(int argc, char** argv)
     // FLAGS_stop_logging_if_full_disk = true;  // 设置磁盘满时停止写日志
 
     // create glfw window
-    ck::ImguiGLfwWindowBase window({window_width, window_height}, "ShadowWithMutiLights");
-    window.set_glfwWindow_callBack(framebuffer_size_callback, mouse_callback,
-                                   scroll_callback);  // 注册glfwWindow的回调函数
+    ck::ImguiGlfwWindowBase window({800, 600}, "ShadowWithMutiLights");
 
     // init glad
     if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) == 0)
@@ -170,11 +189,9 @@ int main(int argc, char** argv)
         throw std::runtime_error("Failed to initialize GLAD");
     }
 
-    // opengl debug
+    // glfw opengl debug
 #ifdef NDEBUG
-    LOG(INFO) << "here is NDEBUG mode.";
 #else
-    LOG(INFO) << "here is DEBUG mode.";
     int32_t flags = 0;
     glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
     if ((flags & GL_CONTEXT_FLAG_DEBUG_BIT) != 0)
@@ -188,7 +205,7 @@ int main(int argc, char** argv)
 #endif
 
     // ANCHOR - opengl setting
-    glViewport(0, 0, window_width, window_height);
+    glViewport(0, 0, 800, 600);
     glEnable(GL_DEPTH_TEST);                            // 启用深度缓冲
     glDepthFunc(GL_LEQUAL);                             // 修改深度测试的标准
     glEnable(GL_STENCIL_TEST);                          // 启用模板缓冲
@@ -223,7 +240,7 @@ int main(int argc, char** argv)
     while (glfwWindowShouldClose(window.get_window()) == 0)
     {
         glfwPollEvents();
-        processInput(window.get_window());
+        processInput(window);
 
         // ANCHOR -  Start the Dear ImGui frame
         {
@@ -235,6 +252,9 @@ int main(int argc, char** argv)
             ImGui::Text("This is some useful text.");
             ImGui::ColorEdit3("clear color", clear_color.data());
             ImGui::End();
+
+            // bool flag = true;
+            // ImGui::ShowDemoWindow(&flag);
         }
         ImGui::Render();
 
@@ -269,13 +289,19 @@ int main(int argc, char** argv)
             /**FIXME - 问题记录：
             cube的顶点是对的，问题在片元着色器上
             1. 相机移动不了，回调函数没有被调用。
+            原因：填给回调函数的是函数的地址，是复制地址。还有是时钟没更新
+            还有一个原因是，yaw被锁定了（限制在-89到89度之间），大概代码抄错了。
+
             2. cube有几个面是全黑的，怀疑是uv有问题。
+            应该是光照的问题，有三个面在方向光源的背面。
              */
         }
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window.get_window());
         GL_CHECK();
+
+        // std::cout << "window focus: " << ImGui::IsWindowFocused() << std::endl;
     }
     // clean up
     ImGui_ImplOpenGL3_Shutdown();

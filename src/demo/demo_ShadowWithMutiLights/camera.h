@@ -27,7 +27,7 @@ private:
     float mouse_sensitivity;
     float camera_zoom;
 
-    bool first_frame_to_view;
+    bool skip_one_frame_flag;
 
     void update_camera_vector();
 
@@ -38,6 +38,8 @@ public:
     [[nodiscard]] glm::vec3 get_position() const;
     [[nodiscard]] float     get_camera_zoom() const;
     [[nodiscard]] glm::mat4 get_view_matrix() const;
+
+    void set_skip_one_frame(bool flag);
 
     void process_keyboard(const std::array<int32_t, 6>& directions, float delta_time);
     void process_mouse_movement(float x_offset, float y_offset, bool constarinPitch = true);
