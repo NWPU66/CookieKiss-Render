@@ -117,7 +117,7 @@ void ck::Mesh::draw(const Shader& shader) const
         else if (name == "texture_specular") { name += std::to_string(specularNr++); }
         else if (name == "texture_normal") { name += std::to_string(normalNr++); }
 
-        shader.setParameter("material." + name, i);
+        shader.setParameter(name, i);
     }
 
     // 绘制
@@ -139,6 +139,7 @@ void ck::Mesh::draw(const Shader& shader) const
 
 ck::Model::Model(const std::string& model_path)
 {
+    std::cout << "model_path: " << model_path << std::endl;
     if (model_path.empty())
     {
         LOG(WARNING) << "model path is empty, please check your model path";
@@ -195,6 +196,7 @@ void ck::Model::processNode(const aiNode* node, const aiScene* scene)
             std::vector<Texture> diffuseMaps =
                 loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
             textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+            std::cout << "num of diffuse texture: " << diffuseMaps.size() << std::endl;
 
             // specular
             std::vector<Texture> specularMaps =

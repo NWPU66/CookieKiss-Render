@@ -10,6 +10,7 @@ Ke 0.000000 0.000000 0.000000 # 自发光
 Ni 1.450000 # optical density（光学密度）
 d 1.000000 # dissolve（溶解度）因子，或者说是透明度
 illum 2 # illum 2 表示使用一种简单的 Lambertian 反射模型
+map_Kd wood.jpg
 
 
 

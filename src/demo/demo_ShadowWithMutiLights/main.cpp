@@ -42,9 +42,11 @@
 #include "shader.h"
 
 // global variable
-static const std::string    asset_root  = "E:/Study/CodeProj/CookieKiss-Render/asset/";
+static const std::string stdAsset_root = "E:/Study/CodeProj/CookieKiss-Render/asset/";
+static const std::string asset_root =
+    "E:/Study/CodeProj/CookieKiss-Render/asset/asset_demo_ShadowWithMutiLights/";
 static std::array<float, 4> clear_color = {0.2F, 0.3F, 0.3F, 1.0F};
-static ck::Camera           camera(glm::vec3(0.0F, 0.0F, -5.0F));
+static ck::Camera           camera(glm::vec3(0.0F, 0.5F, -5.0F));
 
 /**FIXME - 有关imgui窗口lose focus的问题
 imgui_impl_glfw.cpp中设置了imgui需要glfw的回调函数
@@ -97,7 +99,6 @@ inline void processInput(ck::ImguiGlfwWindowBase& window)
 
         // 按下Shift时，飞行加速
         camera.speed_up((glfwGetKey(window_ptr, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS));
-
         // 处理摄像机移动
         std::array<int32_t, 6> direction = {0, 0, 0, 0, 0, 0};
         direction[0] = (glfwGetKey(window_ptr, GLFW_KEY_W) == GLFW_PRESS) ? 1 : 0;
@@ -181,7 +182,7 @@ int main(int argc, char** argv)
     // FLAGS_stop_logging_if_full_disk = true;  // 设置磁盘满时停止写日志
 
     // create glfw window
-    ck::ImguiGlfwWindowBase window({800, 600}, "ShadowWithMutiLights");
+    ck::ImguiGlfwWindowBase window({1280, 720}, "ShadowWithMutiLights");
 
     // init glad
     if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) == 0)
@@ -218,11 +219,13 @@ int main(int argc, char** argv)
     GL_CHECK();
 
     // ANCHOR -  init my asset
-    ck::Model      cube(asset_root + "stdModel/box/box.obj");
-    ck::Shader     shadowed_phong(asset_root + "stdShader/stdVerShader.vs.glsl",
-                                  asset_root + "stdShader/stdShadowedPhongLighting.fs.glsl");
-    const uint32_t container_texture =
-        create_image_bufferObject(asset_root + "stdTexture/container.png", true);
+    ck::Model  cube(asset_root + "box.obj");
+    ck::Model  plane(asset_root + "plane.obj");
+    ck::Model  sphere(stdAsset_root + "stdModel/sphere/sphere.obj");
+    ck::Shader shadowed_phong(stdAsset_root + "stdShader/stdVerShader.vs.glsl",
+                              asset_root + "stdShadowedPhongLighting.fs.glsl");
+    ck::Shader lightObjShader(stdAsset_root + "stdShader/stdVerShader.vs.glsl",
+                              stdAsset_root + "stdShader/stdPureColor.fs.glsl");
     GL_CHECK();
 
     // 灯光组
@@ -244,17 +247,18 @@ int main(int argc, char** argv)
 
         // ANCHOR -  Start the Dear ImGui frame
         {
+            static bool open_demo_window = false;
+
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            ImGui::Begin("rendering settings");
-            ImGui::Text("This is some useful text.");
+            ImGui::Begin("CookieKiss Render Assistant");
             ImGui::ColorEdit3("clear color", clear_color.data());
+            if (ImGui::Button("open Demo window")) { open_demo_window = true; }
             ImGui::End();
 
-            // bool flag = true;
-            // ImGui::ShowDemoWindow(&flag);
+            if (open_demo_window) { ImGui::ShowDemoWindow(&open_demo_window); }
         }
         ImGui::Render();
 
@@ -276,15 +280,12 @@ int main(int argc, char** argv)
 
             // cube
             shadowed_phong.use();
-            shadowed_phong.setParameter("model", glm::mat4(1));
+            shadowed_phong.setParameter(
+                "model",
+                glm::translate(glm::scale(glm::mat4(1), glm::vec3(0.5)), glm::vec3(0, 1, 0)));
             shadowed_phong.setParameter("view", view);
             shadowed_phong.setParameter("projection", projection);
-            // TODO - set shadow map
             shadowed_phong.setParameter("cameraPos", camera.get_position());
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, container_texture);
-            shadowed_phong.setParameter("texture0", 0);
-            // TODO - set light matrix
             cube.draw(shadowed_phong);
             /**FIXME - 问题记录：
             cube的顶点是对的，问题在片元着色器上
@@ -295,13 +296,32 @@ int main(int argc, char** argv)
             2. cube有几个面是全黑的，怀疑是uv有问题。
             应该是光照的问题，有三个面在方向光源的背面。
              */
+            // ground
+            shadowed_phong.use();
+            shadowed_phong.setParameter("model", glm::scale(glm::mat4(1), glm::vec3(5)));
+            plane.draw(shadowed_phong);
+
+            // light group
+            lightObjShader.use();
+            lightObjShader.setParameter("view", view);
+            lightObjShader.setParameter("projection", projection);
+            for (const auto& light : light_group.get_lights())
+            {
+                if (light.get_light_type() != 1)  // 日光不渲染实体
+                {
+                    lightObjShader.setParameter(
+                        "model", glm::scale(glm::translate(glm::mat4(1), light.get_postion()),
+                                            glm::vec3(0.1)));
+                    lightObjShader.setParameter("lightColor", light.get_color());
+                    sphere.draw(lightObjShader);
+                    // FIXME - 常量对象只能调用它的常函数
+                }
+            }
         }
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window.get_window());
         GL_CHECK();
-
-        // std::cout << "window focus: " << ImGui::IsWindowFocused() << std::endl;
     }
     // clean up
     ImGui_ImplOpenGL3_Shutdown();
