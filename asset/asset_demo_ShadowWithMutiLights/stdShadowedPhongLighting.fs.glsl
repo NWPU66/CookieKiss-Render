@@ -42,9 +42,10 @@ void main(){
         outputColor+=Lighting(i);
     }
     vec3 ambient=texture(skybox,reflect(fs_in.globalPos-cameraPos,fs_in.globalNormal)).xyz;
-    fragColor=vec4(outputColor,1.f);
+    fragColor=vec4(outputColor+ambient*.05,1.f);
+    //TODO - ambient加上一个随视角的改变，正视的时候强度小，斜视强度大
     
-    fragColor=vec4(texture(texture_diffuse0,fs_in.texCoord).xyz,1);
+    // fragColor=vec4(texture(texture_diffuse0,fs_in.texCoord).xyz,1);
 }
 
 vec3 Lighting(int i){

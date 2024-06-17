@@ -1,13 +1,14 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include <assimp/scene.h>
 
-#include "shader.h"
 #include "core/ck_debug.h"
+#include "shader.h"
 
 namespace ck {
 
@@ -57,7 +58,10 @@ public:
     Mesh& operator=(Mesh&&)      = default;
 
     void                   draw(const Shader& shader) const;
+
     [[nodiscard]] uint32_t get_vao() const;
+    /// @brif 返回第一个最小的可用纹理slot
+    [[nodiscard]] int32_t get_avaliable_texture_slot() const;
 };
 
 class Model {
@@ -75,6 +79,9 @@ private:
 public:
     explicit Model(const std::string& model_path);
     void draw(const Shader& shader) const;
+
+    /// @brif 返回第一个最小的可用纹理slot
+    [[nodiscard]] int32_t get_avaliable_texture_slot() const;
 };
 
 }  // namespace ck

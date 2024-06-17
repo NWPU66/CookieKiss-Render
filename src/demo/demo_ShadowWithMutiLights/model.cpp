@@ -1,6 +1,6 @@
 #include "model.h"
 
-#include <GL/gl.h>
+#include <algorithm>
 #include <iostream>
 #include <queue>
 #include <string>
@@ -11,6 +11,7 @@
 #include <assimp/scene.h>
 #include <stb_image.h>
 
+#include "core/ck_debug.h"
 #include "shader.h"
 
 ck::Mesh::Mesh(const aiMesh* mesh, std::vector<Texture>& textures) : textures(std::move(textures))
@@ -132,6 +133,11 @@ void ck::Mesh::draw(const Shader& shader) const
     GL_CHECK();
 }
 
+[[nodiscard]] int32_t ck::Mesh::get_avaliable_texture_slot() const
+{
+    return textures.size();
+}
+
 [[nodiscard]] uint32_t ck::Mesh::get_vao() const
 {
     return vao;  // NOTE - 返回的是int的副本，确实没必要出const
@@ -139,7 +145,6 @@ void ck::Mesh::draw(const Shader& shader) const
 
 ck::Model::Model(const std::string& model_path)
 {
-    std::cout << "model_path: " << model_path << std::endl;
     if (model_path.empty())
     {
         LOG(WARNING) << "model path is empty, please check your model path";
@@ -196,7 +201,6 @@ void ck::Model::processNode(const aiNode* node, const aiScene* scene)
             std::vector<Texture> diffuseMaps =
                 loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
             textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-            std::cout << "num of diffuse texture: " << diffuseMaps.size() << std::endl;
 
             // specular
             std::vector<Texture> specularMaps =
@@ -322,4 +326,15 @@ void ck::Model::draw(const Shader& shader) const
         mesh.draw(shader);
     }
     GL_CHECK();
+}
+
+[[nodiscard]] int32_t ck::Model::get_avaliable_texture_slot() const
+{
+    int32_t avaliable_texture_slot = 0;
+    for (const auto& mesh : meshes)
+    {
+        avaliable_texture_slot =
+            std::max(avaliable_texture_slot, mesh.get_avaliable_texture_slot());
+    }
+    return avaliable_texture_slot;
 }

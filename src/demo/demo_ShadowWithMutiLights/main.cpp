@@ -173,6 +173,39 @@ uint32_t create_image_bufferObject(const std::string& file_path,
     return texture;
 }
 
+uint32_t create_skyBox_texture(const std::string& image_folder)
+{
+    GLuint cubeTexture;
+    glGenTextures(1, &cubeTexture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTexture);
+    std::vector<std::string> cubeTexture_names = {"right.jpg",  "left.jpg",  "top.jpg",
+                                                  "bottom.jpg", "front.jpg", "back.jpg"};
+    for (int i = 0; i < 6; i++)
+    {
+        std::string cubeTexture_path = image_folder + cubeTexture_names[i];
+        int         width            = 0;
+        int         height           = 0;
+        int         nrChannels       = 0;
+        stbi_set_flip_vertically_on_load(0);  // 加载图片时翻转y轴
+        GLubyte* data = stbi_load(cubeTexture_path.c_str(), &width, &height, &nrChannels, 0);
+        if (data != nullptr)
+        {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_SRGB, width, height, 0, GL_RGB,
+                         GL_UNSIGNED_BYTE, data);
+            // 设置纹理属性
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        }
+        else { std::cout << "Failed to load texture: " << cubeTexture_path << std::endl; }
+        stbi_image_free(data);
+    }
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);  // 解绑
+    return cubeTexture;
+}
+
 int main(int argc, char** argv)
 {
     // init glog
@@ -219,13 +252,17 @@ int main(int argc, char** argv)
     GL_CHECK();
 
     // ANCHOR -  init my asset
-    ck::Model  cube(asset_root + "box.obj");
+    /**FIXME - 关于mtl材质文件发生了一些难以解释的问题，莫名其妙的修好了。*/
+    ck::Model  cube(asset_root + "cube.obj");
     ck::Model  plane(asset_root + "plane.obj");
     ck::Model  sphere(stdAsset_root + "stdModel/sphere/sphere.obj");
     ck::Shader shadowed_phong(stdAsset_root + "stdShader/stdVerShader.vs.glsl",
                               asset_root + "stdShadowedPhongLighting.fs.glsl");
     ck::Shader lightObjShader(stdAsset_root + "stdShader/stdVerShader.vs.glsl",
                               stdAsset_root + "stdShader/stdPureColor.fs.glsl");
+    ck::Shader skyboxShader(stdAsset_root + "stdShader/stdSkyboxShader.vs.glsl",
+                            stdAsset_root + "stdShader/stdSkyboxShader.fs.glsl");
+    uint32_t   skyBox_texture = create_skyBox_texture(stdAsset_root + "stdTexture/skybox/");
     GL_CHECK();
 
     // 灯光组
@@ -286,7 +323,12 @@ int main(int argc, char** argv)
             shadowed_phong.setParameter("view", view);
             shadowed_phong.setParameter("projection", projection);
             shadowed_phong.setParameter("cameraPos", camera.get_position());
+            int32_t skyBox_texture_slot = cube.get_avaliable_texture_slot();
+            glActiveTexture(GL_TEXTURE0 + skyBox_texture_slot);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, skyBox_texture);
+            shadowed_phong.setParameter("skybox", skyBox_texture_slot);
             cube.draw(shadowed_phong);
+            GL_CHECK();
             /**FIXME - 问题记录：
             cube的顶点是对的，问题在片元着色器上
             1. 相机移动不了，回调函数没有被调用。
@@ -299,7 +341,12 @@ int main(int argc, char** argv)
             // ground
             shadowed_phong.use();
             shadowed_phong.setParameter("model", glm::scale(glm::mat4(1), glm::vec3(5)));
+            skyBox_texture_slot = plane.get_avaliable_texture_slot();
+            glActiveTexture(GL_TEXTURE0 + skyBox_texture_slot);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, skyBox_texture);
+            shadowed_phong.setParameter("skybox", skyBox_texture_slot);
             plane.draw(shadowed_phong);
+            GL_CHECK();
 
             // light group
             lightObjShader.use();
@@ -317,6 +364,21 @@ int main(int argc, char** argv)
                     // FIXME - 常量对象只能调用它的常函数
                 }
             }
+            GL_CHECK();
+
+            // 天空盒
+            glFrontFace(GL_CW);  // 把顺时针的面设置为“正面”。
+            skyboxShader.use();
+            skyboxShader.setParameter("view",
+                                      glm::mat4(glm::mat3(view)));  // 除去位移，相当于锁头
+            skyboxShader.setParameter("projection", projection);
+            skyBox_texture_slot = cube.get_avaliable_texture_slot();
+            glActiveTexture(GL_TEXTURE0 + skyBox_texture_slot);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, skyBox_texture);
+            skyboxShader.setParameter("skybox", skyBox_texture_slot);
+            cube.draw(skyboxShader);
+            glFrontFace(GL_CCW);
+            GL_CHECK();
         }
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
