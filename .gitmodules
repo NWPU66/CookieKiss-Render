@@ -1,6 +1,3 @@
-[submodule "imgui"]
-	path = 3rdparty/imgui
-	url = https://github.com/ocornut/imgui.git
 [submodule "bullet3"]
 	path = 3rdparty/bullet3
 	url = https://github.com/bulletphysics/bullet3.git

@@ -230,7 +230,6 @@ int main(int argc, char** argv)
     glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
     if ((flags & GL_CONTEXT_FLAG_DEBUG_BIT) != 0)
     {
-        LOG(INFO) << "GL_CONTEXT_FLAG_DEBUG_BIT is enabled.";
         glDebugMessageCallback(ck::glDebugOutput, nullptr);  // 向opengl注册调试回调函数
         glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR,
                               GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_TRUE);
