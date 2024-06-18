@@ -14,15 +14,16 @@ add_executable(demo_ShadowWithMutiLights
     ${SRC}
     ${HEADER})
 target_include_directories(demo_ShadowWithMutiLights PRIVATE
+    # ${CMAKE_SOURCE_DIR}/3rdparty/imgui
     ${CMAKE_SOURCE_DIR}/3rdparty/imgui/backends
     ${VCPKG_INCLUDE_DIR}
     ${SRC_DIR})
 target_link_libraries(demo_ShadowWithMutiLights PRIVATE 
     ckCore
-    imgui::imgui
     glog::glog
     glfw
     assimp::assimp
+    imgui::imgui
     glm::glm
     glad::glad
     util)

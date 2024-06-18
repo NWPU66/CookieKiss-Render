@@ -9,6 +9,8 @@
 
 static const float DEFAULT_MOVE_SPEED        = 5.0F;
 static const float DEFAULT_MOUSE_SENSITIVITY = 0.1F;
+static const float DEFAULT_NEAR_PLANE        = 0.1F;
+static const float DEFAULT_FAR_PLANE         = 100.0F;
 
 namespace ck {
 
@@ -27,6 +29,9 @@ private:
     float mouse_sensitivity;
     float camera_zoom;
 
+    float near_plane;
+    float far_plane;
+
     bool skip_one_frame_flag;
 
     void update_camera_vector();
@@ -38,6 +43,7 @@ public:
     [[nodiscard]] glm::vec3 get_position() const;
     [[nodiscard]] float     get_camera_zoom() const;
     [[nodiscard]] glm::mat4 get_view_matrix() const;
+    [[nodiscard]] glm::mat4 get_projection_matrix(float aspect_ratio) const;
 
     void set_skip_one_frame(bool flag);
 

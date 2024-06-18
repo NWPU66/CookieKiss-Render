@@ -43,7 +43,7 @@ ck::ImguiGlfwWindowBase::ImguiGlfwWindowBase(const std::array<int32_t, 2> window
 
         imgui_io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
         imgui_io->ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
-        // imgui_io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        imgui_io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();

@@ -10,7 +10,8 @@
 ck::Camera::Camera(const glm::vec3& position, const glm::vec3& world_up_vec)
     : position(position), world_up_vec(world_up_vec), yaw(90.0F), pitch(0.0F),
       front_vec(glm::vec3(0)), move_speed(DEFAULT_MOVE_SPEED),
-      mouse_sensitivity(DEFAULT_MOUSE_SENSITIVITY), camera_zoom(45.0F), skip_one_frame_flag(true)
+      mouse_sensitivity(DEFAULT_MOUSE_SENSITIVITY), camera_zoom(45.0F), skip_one_frame_flag(true),
+      near_plane(DEFAULT_NEAR_PLANE), far_plane(DEFAULT_FAR_PLANE)
 {
     update_camera_vector();
 }
@@ -28,6 +29,11 @@ ck::Camera::Camera(const glm::vec3& position, const glm::vec3& world_up_vec)
 [[nodiscard]] glm::mat4 ck::Camera::get_view_matrix() const
 {
     return glm::lookAt(position, position + front_vec, up_vec);
+}
+
+[[nodiscard]] glm::mat4 ck::Camera::get_projection_matrix(const float aspect_ratio) const
+{
+    return glm::perspective(glm::radians(camera_zoom), aspect_ratio, near_plane, far_plane);
 }
 
 void ck::Camera::set_skip_one_frame(const bool flag)
