@@ -2,7 +2,9 @@
 
 #include <cstdint>
 
+#include <array>
 #include <string>
+#include <vector>
 
 #include <glad/glad.h>
 
@@ -14,7 +16,8 @@ namespace ck {
 
 class Shader {
 private:
-    uint32_t id;
+    uint32_t                   id;
+    std::array<std::string, 3> load_path;
 
     static void checkShaderCompiling(GLuint shader);
     static void checkShaderProgramCompiling(GLuint shaderProgram);
@@ -38,7 +41,10 @@ public:
     void setParameter(const std::string& name, const glm::vec2& value) const;
     void setParameter(const std::string& name, const glm::mat4& value) const;
 
-    [[nodiscard]] uint32_t get_id() const;
+    [[nodiscard]] uint32_t                          get_id() const;
+    [[nodiscard]] const std::array<std::string, 3>& get_load_path() const;
+
+    bool operator==(const Shader& other) const;
 };
 
 };  // namespace ck

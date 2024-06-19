@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -13,10 +14,11 @@
 #include "camera.h"
 #include "light.h"
 #include "model.h"
+#include "shader.h"
 
 namespace ck {
 
-enum class RenderObjectType : uint32_t { NULL_OBJECT, POLYGEN_MESH, LIGHT, SKYBOX };
+enum class RenderObjectType : uint32_t { NULL_OBJECT, POLYGEN_MESH, LIGHT };
 
 struct RenderingSceneSettingCtx
 {
@@ -38,6 +40,8 @@ enum class RenderDrawType : uint32_t {
     BLUR       = 1 << 5
 };
 
+struct SceneObjectEdittingCtx;
+
 /// @brief 渲染对象可以是几何体、灯光。。。
 /// @note 灯光没设计好，以后还是拆开单独设计好了
 /// 平时的时候单独存储，烘培的时候打组统一更新uniform buffer
@@ -48,9 +52,9 @@ private:
     RenderObject*              parent_object;
     std::vector<RenderObject*> children_objects;
 
-    Model*  model;  // 如果是灯光，则使用灯光默认的模型（sphere）
-    Light   light;
-    Shader* shader;
+    std::shared_ptr<Model>  model;  // 如果是灯光，则使用灯光默认的模型（sphere）
+    Light                   light;
+    std::shared_ptr<Shader> shader;
 
     // transformation
     glm::vec3 postion;
@@ -59,16 +63,40 @@ private:
 
     RenderDrawType draw_type;
 
+    void modify_object(const ck::SceneObjectEdittingCtx* ctx);
+
 public:
-    explicit RenderObject(RenderObjectType _object_type,
-                          std::string      _object_name,
-                          Model*           _model         = nullptr,
-                          Light            _light         = Light(-1),
-                          Shader*          _shader        = nullptr,
-                          RenderObject*    _parent_object = nullptr,
-                          RenderDrawType   _draw_type     = RenderDrawType::NORMAL);
+    explicit RenderObject(RenderObjectType               _object_type,
+                          std::string                    _object_name,
+                          const std::shared_ptr<Model>&  _model         = nullptr,
+                          Light                          _light         = Light(-1),
+                          const std::shared_ptr<Shader>& _shader        = nullptr,
+                          RenderObject*                  _parent_object = nullptr,
+                          RenderDrawType                 _draw_type     = RenderDrawType::NORMAL);
     void                           draw(const RenderingSceneSettingCtx* ctx) const;
     [[nodiscard]] RenderObjectType get_object_type() const;
+    std::vector<RenderObject*>&    get_children();
+
+    void modify_polygen(const ck::SceneObjectEdittingCtx* ctx);
+    void modify_light(const ck::SceneObjectEdittingCtx* ctx);
+};
+
+struct SceneObjectEdittingCtx
+{
+    RenderObjectType* object_type;
+    std::string*      object_name;
+    RenderObject*     parent_object;
+
+    std::shared_ptr<Model>  model;
+    LightAttributes*        light_attributes;
+    std::shared_ptr<Shader> shader;
+
+    // transformation
+    glm::vec3* postion;
+    glm::vec3* rotation;
+    glm::vec3* scale;
+
+    RenderDrawType* draw_type;
 };
 
 };  // namespace ck

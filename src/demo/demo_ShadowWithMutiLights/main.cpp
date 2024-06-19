@@ -39,14 +39,18 @@
 #include "imgui_glfw_window_base.h"
 #include "light.h"
 #include "model.h"
+#include "scene.h"
 #include "shader.h"
 
 // global variable
-static const std::string stdAsset_root = "E:/Study/CodeProj/CookieKiss-Render/asset/";
-static const std::string asset_root =
+extern const std::string stdAsset_root = "E:/Study/CodeProj/CookieKiss-Render/asset/";
+extern const std::string asset_root =
     "E:/Study/CodeProj/CookieKiss-Render/asset/asset_demo_ShadowWithMutiLights/";
 static std::array<float, 4> clear_color = {0.2F, 0.3F, 0.3F, 1.0F};
 static ck::Camera           camera(glm::vec3(0.0F, 0.5F, -5.0F));
+/**FIXME - 错题本：多个文件中共享const对象
+对于const变量不管是声明还是定义都添加extern关键字
+*/
 
 /**FIXME - 有关imgui窗口lose focus的问题
 imgui_impl_glfw.cpp中设置了imgui需要glfw的回调函数
@@ -262,6 +266,7 @@ int main(int argc, char** argv)
     ck::Shader skyboxShader(stdAsset_root + "stdShader/stdSkyboxShader.vs.glsl",
                             stdAsset_root + "stdShader/stdSkyboxShader.fs.glsl");
     uint32_t   skyBox_texture = create_skyBox_texture(stdAsset_root + "stdTexture/skybox/");
+    auto&      scene          = ck::Scene::get_instance();
     GL_CHECK();
 
     // 灯光组

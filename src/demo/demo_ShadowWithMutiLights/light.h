@@ -7,8 +7,19 @@
 #include <glm/glm.hpp>
 
 static const uint32_t MAX_LIGHTS_SUPPORTED = 16;
+static const float    DEFUALT_INNER_CUTOFF = cos(glm::radians(12.5F));
+static const float    DEFUALT_OUTER_CUTOFF = cos(glm::radians(17.5F));
 
 namespace ck {
+
+struct LightAttributes
+{
+    int32_t   light_type;
+    glm::vec3 color;
+    float     intensity;
+    glm::vec3 position, rotation;
+    float     inner_cutOff, outer_cutOff;  // for spot light
+};
 
 /// @param lightType -1代表无效灯，0点光，1日光，2聚光，3面光。
 class Light {
@@ -25,8 +36,8 @@ public:
                    float     intensity    = 1,
                    glm::vec3 position     = glm::vec3(0),
                    glm::vec3 rotation     = glm::vec3(0),
-                   float     inner_cutOff = cos(glm::radians(12.5F)),
-                   float     outer_cutOff = cos(glm::radians(17.5F)));
+                   float     inner_cutOff = DEFUALT_INNER_CUTOFF,
+                   float     outer_cutOff = DEFUALT_OUTER_CUTOFF);
 
     [[nodiscard]] glm::vec3 get_postion() const;
     [[nodiscard]] glm::vec3 get_rotation() const;

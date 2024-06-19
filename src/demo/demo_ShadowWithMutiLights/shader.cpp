@@ -4,12 +4,14 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <tuple>
 
 #include "core/ck_debug.h"
 
 ck::Shader::Shader(const std::string& vertexShader_path,
                    const std::string& fragmentShader_path,
                    const std::string& geometryShader_path)
+    : load_path{vertexShader_path, fragmentShader_path, geometryShader_path}
 {
     bool use_geomShader = !geometryShader_path.empty();
     if (use_geomShader) { LOG(INFO) << "use geometry shader"; }
@@ -160,4 +162,14 @@ void ck::Shader::checkShaderProgramCompiling(const GLuint shaderProgram)
         LOG(ERROR) << "ERROR::SHADER::VERTEX::COMPILATION_FAILED" << infoLog;
     }
     else { LOG(INFO) << "Shader Program Compile success!"; }
+}
+
+[[nodiscard]] const std::array<std::string, 3>& ck::Shader::get_load_path() const
+{
+    return load_path;
+}
+
+bool ck::Shader::operator==(const Shader& other) const
+{
+    return (this->load_path == other.get_load_path());
 }

@@ -143,7 +143,7 @@ void ck::Mesh::draw(const Shader& shader) const
     return vao;  // NOTE - 返回的是int的副本，确实没必要出const
 }
 
-ck::Model::Model(const std::string& model_path)
+ck::Model::Model(const std::string& model_path) : load_path(model_path)
 {
     if (model_path.empty())
     {
@@ -337,4 +337,14 @@ void ck::Model::draw(const Shader& shader) const
             std::max(avaliable_texture_slot, mesh.get_avaliable_texture_slot());
     }
     return avaliable_texture_slot;
+}
+
+[[nodiscard]] const std::string& ck::Model::get_load_path() const
+{
+    return load_path;
+}
+
+bool ck::Model::operator==(const Model& other) const
+{
+    return (this->load_path == other.get_load_path());
 }

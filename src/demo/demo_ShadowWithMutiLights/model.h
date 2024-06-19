@@ -57,7 +57,7 @@ public:
     Mesh(Mesh&&)                 = default;
     Mesh& operator=(Mesh&&)      = default;
 
-    void                   draw(const Shader& shader) const;
+    void draw(const Shader& shader) const;
 
     [[nodiscard]] uint32_t get_vao() const;
     /// @brif 返回第一个最小的可用纹理slot
@@ -70,6 +70,8 @@ private:
     std::string          model_directory;
     std::vector<Texture> textures_loaded;
 
+    std::string load_path;
+
     void                 processNode(const aiNode* node, const aiScene* scene);
     std::vector<Texture> loadMaterialTextures(const aiMaterial*  material,
                                               aiTextureType      type,
@@ -80,8 +82,11 @@ public:
     explicit Model(const std::string& model_path);
     void draw(const Shader& shader) const;
 
-    /// @brif 返回第一个最小的可用纹理slot
-    [[nodiscard]] int32_t get_avaliable_texture_slot() const;
+    /// @brief 返回第一个最小的可用纹理slot
+    [[nodiscard]] int32_t            get_avaliable_texture_slot() const;
+    [[nodiscard]] const std::string& get_load_path() const;
+
+    bool operator==(const Model& other) const;
 };
 
 }  // namespace ck
