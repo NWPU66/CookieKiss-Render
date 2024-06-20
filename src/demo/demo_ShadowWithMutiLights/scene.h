@@ -1,12 +1,11 @@
 #pragma once
 
-
 #include <cstdint>
 
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
-#include <array>
 
 #include <glad/glad.h>
 
@@ -54,10 +53,10 @@ private:
 
     当引用计数为1的时候表示该model/shader不再被引用
     */
-    std::vector<std::shared_ptr<Model>>  model_prototypes;
-    std::vector<std::shared_ptr<Shader>> shader_prototypes;
-    std::vector<RenderObject>            objects;
-    std::unique_ptr<RenderObject>        scene_root;
+    std::vector<std::shared_ptr<Model>>        model_prototypes;
+    std::vector<std::shared_ptr<Shader>>       shader_prototypes;
+    std::vector<std::shared_ptr<RenderObject>> objects;
+    std::shared_ptr<RenderObject>              scene_root;
 
     std::unique_ptr<Camera>       camera;
     std::unique_ptr<SkyBoxObject> skyBox;
@@ -90,7 +89,9 @@ public:
 
     void modify_object(int32_t object_index, const SceneObjectEdittingCtx* ctx);
 
-    [[nodiscard]] std::vector<RenderObject>& get_scene_objects();
+    [[nodiscard]] std::vector<std::shared_ptr<RenderObject>>& get_scene_objects();
+    [[nodiscard]] SkyBoxObject&                               get_skyBox();
+    [[nodiscard]] Camera&                                     get_camera();
 
     void draw(const ImguiGlfwWindowBase& window) const;
 };

@@ -7,6 +7,9 @@ in VS_OUT{
     vec3 globalPos;
     vec3 globalNormal;
     vec2 texCoord;
+    vec3 globalTangent;
+    vec3 globalBitangent;
+    mat3 TBN;
 }fs_in;
 
 struct Light{

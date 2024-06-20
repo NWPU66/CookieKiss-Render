@@ -17,10 +17,17 @@ struct Vertex
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 texCoord;
+    glm::vec3 tangent;
+    glm::vec3 bitangent;
 
     Vertex() = delete;
-    Vertex(glm::vec3 position, glm::vec3 normal, glm::vec2 texCoord)
-        : position(position), normal(normal), texCoord(texCoord)
+    Vertex(glm::vec3 position,
+           glm::vec3 normal,
+           glm::vec2 texCoord,
+           glm::vec3 tangent,
+           glm::vec3 bitangent)
+        : position(position), normal(normal), texCoord(texCoord), tangent(tangent),
+          bitangent(bitangent)
     {
     }
     /**FIXME - 错题本

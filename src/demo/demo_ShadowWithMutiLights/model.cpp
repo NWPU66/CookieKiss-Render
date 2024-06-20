@@ -52,10 +52,11 @@ ck::Mesh::Mesh(const aiMesh* mesh, std::vector<Texture>& textures) : textures(st
     indices_num = indices.size();
 
     // 计算缓冲区的总大小
-    GLsizeiptr total_vertex_buffer_size =
-        mesh->mNumVertices * sizeof(aiVector3D)       // 顶点位置
-        + mesh->mNumVertices * sizeof(aiVector3D)     // 顶点法向
-        + mesh_texCoords.size() * sizeof(glm::vec2);  // 顶点纹理坐标
+    GLsizeiptr total_vertex_buffer_size = mesh->mNumVertices * sizeof(aiVector3D)    // 顶点位置
+                                          + mesh->mNumVertices * sizeof(aiVector3D)  // 顶点法向
+                                          + mesh_texCoords.size() * sizeof(glm::vec2)  // 纹理坐标
+                                          + mesh->mNumVertices * sizeof(aiVector3D)  // 顶点切线
+                                          + mesh->mNumVertices * sizeof(aiVector3D);  // 顶点副切线
     GLsizeiptr total_element_buffer_size = indices_num * sizeof(uint32_t);
     // 申请
     glBufferData(GL_ARRAY_BUFFER, total_vertex_buffer_size, nullptr, GL_STATIC_DRAW);
@@ -66,7 +67,15 @@ ck::Mesh::Mesh(const aiMesh* mesh, std::vector<Texture>& textures) : textures(st
                     mesh->mNumVertices * sizeof(aiVector3D), mesh->mNormals);
     glBufferSubData(GL_ARRAY_BUFFER, 2 * mesh->mNumVertices * sizeof(aiVector3D),
                     mesh_texCoords.size() * sizeof(glm::vec2), mesh_texCoords.data());
-    // 向缓冲区填充数据
+    glBufferSubData(GL_ARRAY_BUFFER,
+                    2 * mesh->mNumVertices * sizeof(aiVector3D) +
+                        mesh_texCoords.size() * sizeof(glm::vec2),
+                    mesh->mNumVertices * sizeof(aiVector3D), mesh->mTangents);
+    glBufferSubData(GL_ARRAY_BUFFER,
+                    3 * mesh->mNumVertices * sizeof(aiVector3D) +
+                        mesh_texCoords.size() * sizeof(glm::vec2),
+                    mesh->mNumVertices * sizeof(aiVector3D), mesh->mBitangents);
+    // 向缓冲区填充索引数据
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_num * sizeof(uint32_t), indices.data(),
                  GL_STATIC_DRAW);
     /**FIXME - 错误定位：//生成顶点数据（26~46）
@@ -79,9 +88,17 @@ ck::Mesh::Mesh(const aiMesh* mesh, std::vector<Texture>& textures) : textures(st
                           (void*)(mesh->mNumVertices * sizeof(aiVector3D)));
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0,
                           (void*)(2 * mesh->mNumVertices * sizeof(aiVector3D)));
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0,
+                          (void*)(2 * mesh->mNumVertices * sizeof(aiVector3D) +
+                                  mesh_texCoords.size() * sizeof(glm::vec2)));
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0,
+                          (void*)(3 * mesh->mNumVertices * sizeof(aiVector3D) +
+                                  mesh_texCoords.size() * sizeof(glm::vec2)));
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(3);
+    glEnableVertexAttribArray(4);
 
     // 解绑
     glBindVertexArray(0);
@@ -153,8 +170,8 @@ ck::Model::Model(const std::string& model_path) : load_path(model_path)
 
     // load model from path
     Assimp::Importer importer;
-    const aiScene*   scene =
-        importer.ReadFile(model_path.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs);
+    const aiScene*   scene = importer.ReadFile(
+        model_path.c_str(), aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_FlipUVs);
     if (scene == nullptr || ((scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) != 0U) ||
         scene->mRootNode == nullptr)
     {

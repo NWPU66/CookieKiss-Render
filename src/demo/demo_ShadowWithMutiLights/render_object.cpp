@@ -16,7 +16,7 @@ void ck::RenderObject::modify_object(const ck::SceneObjectEdittingCtx* ctx)
 {
     // 设置共有属性
     // general
-    if (ctx->object_name != nullptr) { object_name = std::move(*(ctx->object_name)); }
+    if (!ctx->object_name.empty()) { object_name = ctx->object_name; }
     if (ctx->parent_object != nullptr && object_type != RenderObjectType::NULL_OBJECT)
     {
         // 寻找父级child列表中指向自己的指针

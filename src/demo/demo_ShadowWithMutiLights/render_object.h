@@ -32,6 +32,7 @@ struct RenderingSceneSettingCtx
 
 /// @brief 只有当对象是多边形几何体时，RenderDrawType才有意义
 enum class RenderDrawType : uint32_t {
+    NULL_TYPE  = 0,
     NORMAL     = 1 << 0,
     UNVISIABLE = 1 << 1,
     OUTLINE    = 1 << 2,
@@ -73,7 +74,9 @@ public:
                           const std::shared_ptr<Shader>& _shader        = nullptr,
                           RenderObject*                  _parent_object = nullptr,
                           RenderDrawType                 _draw_type     = RenderDrawType::NORMAL);
-    void                           draw(const RenderingSceneSettingCtx* ctx) const;
+
+    void draw(const RenderingSceneSettingCtx* ctx) const;
+
     [[nodiscard]] RenderObjectType get_object_type() const;
     std::vector<RenderObject*>&    get_children();
 
@@ -83,20 +86,20 @@ public:
 
 struct SceneObjectEdittingCtx
 {
-    RenderObjectType* object_type;
-    std::string*      object_name;
-    RenderObject*     parent_object;
+    RenderObjectType object_type{RenderObjectType::NULL_OBJECT};
+    std::string      object_name;
+    RenderObject*    parent_object{nullptr};
 
-    std::shared_ptr<Model>  model;
-    LightAttributes*        light_attributes;
-    std::shared_ptr<Shader> shader;
+    std::shared_ptr<Model>  model{nullptr};
+    LightAttributes*        light_attributes{nullptr};
+    std::shared_ptr<Shader> shader{nullptr};
 
     // transformation
-    glm::vec3* postion;
-    glm::vec3* rotation;
-    glm::vec3* scale;
+    glm::vec3* postion{nullptr};
+    glm::vec3* rotation{nullptr};
+    glm::vec3* scale{nullptr};
 
-    RenderDrawType* draw_type;
+    RenderDrawType draw_type{RenderDrawType::NULL_TYPE};
 };
 
 };  // namespace ck

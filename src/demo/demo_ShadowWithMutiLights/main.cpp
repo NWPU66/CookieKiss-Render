@@ -6,12 +6,15 @@
  * 本项目的 .h 文件.
  */
 
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <ctime>
 
 #include <array>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -20,6 +23,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <GLFW/glfw3.h>
 #include <glm/matrix.hpp>
+#include <glm/trigonometric.hpp>
 #include <glog/logging.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -39,15 +43,18 @@
 #include "imgui_glfw_window_base.h"
 #include "light.h"
 #include "model.h"
+#include "render_object.h"
 #include "scene.h"
 #include "shader.h"
+
+#define USE_NEW_SYSTEM
 
 // global variable
 extern const std::string stdAsset_root = "E:/Study/CodeProj/CookieKiss-Render/asset/";
 extern const std::string asset_root =
     "E:/Study/CodeProj/CookieKiss-Render/asset/asset_demo_ShadowWithMutiLights/";
 static std::array<float, 4> clear_color = {0.2F, 0.3F, 0.3F, 1.0F};
-static ck::Camera           camera(glm::vec3(0.0F, 0.5F, -5.0F));
+// static ck::Camera           camera(glm::vec3(0.0F, 0.5F, -5.0F));
 /**FIXME - 错题本：多个文件中共享const对象
 对于const变量不管是声明还是定义都添加extern关键字
 */
@@ -97,6 +104,8 @@ inline void processInput(ck::ImguiGlfwWindowBase& window)
 
     if (window.get_isFlying())
     {
+        auto& camera = ck::Scene::get_instance().get_camera();
+
         // 更新摄像机的位置和视场
         camera.process_mouse_movement(imgui_io->MouseDelta.x, imgui_io->MouseDelta.y);
         camera.process_mouse_scroll(imgui_io->MouseWheel);
@@ -254,6 +263,7 @@ int main(int argc, char** argv)
     glEnable(GL_FRAMEBUFFER_SRGB);                      // 自动Gamme矫正
     GL_CHECK();
 
+#ifndef USE_NEW_SYSTEM
     // ANCHOR -  init my asset
     /**FIXME - 关于mtl材质文件发生了一些难以解释的问题，莫名其妙的修好了。*/
     ck::Model  cube(asset_root + "cube.obj");
@@ -266,7 +276,6 @@ int main(int argc, char** argv)
     ck::Shader skyboxShader(stdAsset_root + "stdShader/stdSkyboxShader.vs.glsl",
                             stdAsset_root + "stdShader/stdSkyboxShader.fs.glsl");
     uint32_t   skyBox_texture = create_skyBox_texture(stdAsset_root + "stdTexture/skybox/");
-    auto&      scene          = ck::Scene::get_instance();
     GL_CHECK();
 
     // 灯光组
@@ -279,6 +288,15 @@ int main(int argc, char** argv)
     light_group.create_light_uniformBuffer();
     light_group.binding_uniformBuffer(0);
     GL_CHECK();
+#endif
+
+    // Use New Render System
+    auto& scene = ck::Scene::get_instance();
+    scene.get_skyBox().load_skyBox_texture_from_file(stdAsset_root + "stdTexture/skybox/");
+    scene.add_model_from_file(asset_root + "cube.obj",
+                              {stdAsset_root + "stdShader/stdVerShader.vs.glsl",
+                               asset_root + "stdShadowedPhongLighting.fs.glsl", ""},
+                              "cube_01");
 
     // main loop
     while (glfwWindowShouldClose(window.get_window()) == 0)
@@ -303,7 +321,9 @@ int main(int argc, char** argv)
         }
         ImGui::Render();
 
+#ifndef USE_NEW_SYSTEM
         // ANCHOR -  OpenGL rendering goes here
+        if (false)
         {
             // clear
             glClearColor(clear_color[0], clear_color[1], clear_color[2], clear_color[3]);
@@ -383,6 +403,20 @@ int main(int argc, char** argv)
             cube.draw(skyboxShader);
             glFrontFace(GL_CCW);
             GL_CHECK();
+        }
+#endif
+
+        // ANCHOR - New System：OpenGL rendering goes here
+        {
+            ck::SceneObjectEdittingCtx ctx;
+            ctx.object_type = ck::RenderObjectType::POLYGEN_MESH;
+            ctx.object_name = "a cube";
+            glm::vec3 rotation(glm::radians(sin(ImGui::GetTime() + 30.0F) * 90.0F),
+                               glm::radians(sin(ImGui::GetTime() + 10.0F) * 90.0F),
+                               glm::radians(sin(ImGui::GetTime() + 50.0F) * 90.0F));
+            ctx.rotation = &rotation;
+            scene.modify_object(1, &ctx);
+            scene.draw(window);
         }
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

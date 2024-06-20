@@ -1,5 +1,7 @@
 #include "scene.h"
 
+#include <stdint.h>
+
 #include <algorithm>
 #include <array>
 #include <iostream>
@@ -30,7 +32,7 @@ extern const std::string stdAsset_root;
 */
 
 ck::SkyBoxObject::SkyBoxObject()
-    : skyBox_texture(0), pureWhite_skyBox_texture(0), skyBox_color(1),
+    : skyBox_texture(0), pureWhite_skyBox_texture(0), skyBox_color(1.0F),
       skyBox_shader(stdAsset_root + "stdShader/stdSkyboxShader.vs.glsl",
                     stdAsset_root + "stdShader/stdSkyboxShader.fs.glsl"),
       skyBox_model(stdAsset_root + "stdModel/box/box.obj")
@@ -116,11 +118,11 @@ void ck::SkyBoxObject::draw(const RenderingSceneSettingCtx* ctx) const
     GL_CHECK();
 }
 
-ck::Scene::Scene() : camera(new Camera(glm::vec3(0.0F, 0.5F, -5.0F))), skyBox(new SkyBoxObject())
+ck::Scene::Scene()
+    : camera(new Camera(glm::vec3(0.0F, 0.5F, -5.0F))), skyBox(new SkyBoxObject()),
+      scene_root(new RenderObject(RenderObjectType::NULL_OBJECT, "root"))
 {
-    // 创建Scene默认的Root节点
-    objects.emplace_back(RenderObjectType::NULL_OBJECT, "root");
-    scene_root.reset(objects.data());
+    objects.push_back(scene_root);  // 创建Scene默认的Root节点
 }
 
 void ck::Scene::add_model_prototype(const std::string& model_file_path)
@@ -179,9 +181,19 @@ void ck::Scene::add_model_from_file(const std::string&                model_file
     }
 
     // 创建object
-    objects.emplace_back(RenderObjectType::POLYGEN_MESH, object_name, *model_it, Light(-1),
-                         *shader_it, scene_root.get(), RenderDrawType::NORMAL);
-    scene_root->get_children().push_back(&objects.back());  // 向scene_root添加子节点
+    std::shared_ptr<RenderObject> object(
+        new RenderObject(RenderObjectType::POLYGEN_MESH, object_name, *model_it, Light(-1),
+                         *shader_it, scene_root.get(), RenderDrawType::NORMAL));
+    objects.push_back(object);
+    scene_root->get_children().push_back(object.get());  // 向scene_root添加子节点
+    /**FIXME - 错题本
+    Access violation reading location 0xFFFFFFFFFFFFFFFF.
+    std::vector容器是会更改位置的，所以之前拿到的指向容器元素的指针，不能保证未来仍然有效
+
+    * TODO - 修改方案：
+    std::vector<RenderObject>            objects;
+    std::vector<std::shared_ptr<RenderObject>>            objects;
+    */
 }
 
 void ck::Scene::modify_object(int32_t object_index, const ck::SceneObjectEdittingCtx* ctx)
@@ -191,29 +203,39 @@ void ck::Scene::modify_object(int32_t object_index, const ck::SceneObjectEdittin
         LOG(ERROR) << "cannot modify object whose index is out of the range!";
         return;
     }
-    if (*(ctx->object_type) == RenderObjectType::NULL_OBJECT)
+    if (ctx->object_type == RenderObjectType::NULL_OBJECT)
     {
         LOG(ERROR) << "NULL object or Scene root object cannot be modified!";
         return;
     }
 
-    switch (*(ctx->object_type))
+    switch (ctx->object_type)
     {
         case RenderObjectType::POLYGEN_MESH: {
-            objects[object_index].modify_polygen(ctx);
+            objects[object_index]->modify_polygen(ctx);
             break;
         }
         case RenderObjectType::LIGHT: {
-            objects[object_index].modify_light(ctx);
+            objects[object_index]->modify_light(ctx);
             break;
         }
         default: break;
     }
 }
 
-[[nodiscard]] std::vector<ck::RenderObject>& ck::Scene::get_scene_objects()
+[[nodiscard]] std::vector<std::shared_ptr<ck::RenderObject>>& ck::Scene::get_scene_objects()
 {
     return objects;
+}
+
+ck::SkyBoxObject& ck::Scene::get_skyBox()
+{
+    return *skyBox;
+}
+
+ck::Camera& ck::Scene::get_camera()
+{
+    return *camera;
 }
 
 void ck::Scene::draw(const ImguiGlfwWindowBase& window) const
@@ -234,12 +256,11 @@ void ck::Scene::draw(const ImguiGlfwWindowBase& window) const
     ctx.skyBox_color             = skyBox->get_skyBox_color();
 
     // clear
-    glClearColor(ctx.skyBox_color[0], ctx.skyBox_color[1], ctx.skyBox_color[2],
-                 ctx.skyBox_color[3]);
+    glClearColor(ctx.skyBox_color[0], ctx.skyBox_color[1], ctx.skyBox_color[2], 1.0F);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     for (const auto& object : objects)
     {
-        object.draw(&ctx);
+        if (object->get_object_type() != RenderObjectType::NULL_OBJECT) { object->draw(&ctx); }
     }
 
     skyBox->draw(&ctx);  // 最后渲染天空盒
