@@ -33,7 +33,7 @@ ck::SkyBoxObject::SkyBoxObject()
     : skyBox_texture(0), pureWhite_skyBox_texture(0), skyBox_color(1),
       skyBox_shader(stdAsset_root + "stdShader/stdSkyboxShader.vs.glsl",
                     stdAsset_root + "stdShader/stdSkyboxShader.fs.glsl"),
-      skyBox_model(stdAsset_root + "stdModel/box.obj")
+      skyBox_model(stdAsset_root + "stdModel/box/box.obj")
 {
     /**NOTE - 创建一个默认的天空盒
     默认的天空盒式纯白的，配合skyBox_color可以调整颜色。
