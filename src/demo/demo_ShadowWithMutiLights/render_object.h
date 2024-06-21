@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 
 #include <memory>
@@ -17,7 +18,6 @@
 #include "shader.h"
 
 namespace ck {
-
 enum class RenderObjectType : uint32_t { NULL_OBJECT, POLYGEN_MESH, LIGHT };
 
 struct RenderingSceneSettingCtx
@@ -73,12 +73,15 @@ public:
                           Light                          _light         = Light(-1),
                           const std::shared_ptr<Shader>& _shader        = nullptr,
                           RenderObject*                  _parent_object = nullptr,
-                          RenderDrawType                 _draw_type     = RenderDrawType::NORMAL);
+                          RenderDrawType                 _draw_type = RenderDrawType::NULL_TYPE);
 
     void draw(const RenderingSceneSettingCtx* ctx) const;
 
-    [[nodiscard]] RenderObjectType get_object_type() const;
-    std::vector<RenderObject*>&    get_children();
+    [[nodiscard]] RenderObjectType            get_object_type() const;
+    [[nodiscard]] std::vector<RenderObject*>& get_children();
+    [[nodiscard]] const std::string&          get_object_name() const;
+    [[nodiscard]] const Light&                get_light() const;
+    [[nodiscard]] std::array<glm::vec3, 3>    get_transform() const;
 
     void modify_polygen(const ck::SceneObjectEdittingCtx* ctx);
     void modify_light(const ck::SceneObjectEdittingCtx* ctx);

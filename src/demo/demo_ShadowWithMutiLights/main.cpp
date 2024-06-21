@@ -297,6 +297,23 @@ int main(int argc, char** argv)
                               {stdAsset_root + "stdShader/stdVerShader.vs.glsl",
                                asset_root + "stdShadowedPhongLighting.fs.glsl", ""},
                               "cube_01");
+    // add a light to the scene
+    {
+        scene.add_light("a light", ck::Light(0, glm::vec3(1), 1));
+        ck::SceneObjectEdittingCtx ctx;
+        ctx.object_type   = ck::RenderObjectType::LIGHT;
+        ctx.object_name   = "this is a light";
+        ctx.parent_object = scene.get_scene_objects()[1].get();
+        glm::vec3 position(0, 3, 0);
+        glm::vec3 scale(0.1F);
+        ctx.postion = &position;
+        ctx.scale   = &scale;
+        scene.modify_object(2, &ctx);
+    }
+    // light manager
+    ck::SceneLightUBOManager scene_light_maneger;
+    scene_light_maneger.create_light_UBO();
+    scene_light_maneger.binding_uniformBuffer(0);
 
     // main loop
     while (glfwWindowShouldClose(window.get_window()) == 0)

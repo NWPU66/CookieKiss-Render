@@ -10,6 +10,7 @@
 
 #include "light.h"
 #include "model.h"
+#include "scene.h"
 #include "shader.h"
 
 void ck::RenderObject::modify_object(const ck::SceneObjectEdittingCtx* ctx)
@@ -119,9 +120,25 @@ void ck::RenderObject::draw(const RenderingSceneSettingCtx* ctx) const
     return object_type;
 }
 
-std::vector<ck::RenderObject*>& ck::RenderObject::get_children()
+[[nodiscard]] std::vector<ck::RenderObject*>& ck::RenderObject::get_children()
 {
     return children_objects;
+}
+
+[[nodiscard]] const std::string& ck::RenderObject::get_object_name() const
+{
+    return object_name;
+}
+
+[[nodiscard]] const ck::Light& ck::RenderObject::get_light() const
+{
+    if (object_type != RenderObjectType::LIGHT) { LOG(ERROR) << "object type is not light!"; }
+    return light;
+}
+
+[[nodiscard]] std::array<glm::vec3, 3> ck::RenderObject::get_transform() const
+{
+    return {postion, rotation, scale};
 }
 
 void ck::RenderObject::modify_polygen(const ck::SceneObjectEdittingCtx* ctx)
@@ -136,9 +153,13 @@ void ck::RenderObject::modify_light(const ck::SceneObjectEdittingCtx* ctx)
     if (ctx->light_attributes != nullptr)
     {
         light = Light(ctx->light_attributes->light_type, ctx->light_attributes->color,
-                      ctx->light_attributes->intensity, ctx->light_attributes->position,
-                      ctx->light_attributes->rotation, ctx->light_attributes->inner_cutOff,
+                      ctx->light_attributes->intensity, ctx->light_attributes->inner_cutOff,
                       ctx->light_attributes->outer_cutOff);
     }
     modify_object(ctx);
+}
+
+int32_t ck::SceneLightUBOManager::calculate_memory_occupation() const
+{
+    return MAX_LIGHTS_SUPPORTED * Light::calculate_memory_occupancy();
 }

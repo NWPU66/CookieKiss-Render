@@ -49,11 +49,10 @@ void main(){
     vec3 ambient=texture(skybox,reflect(fs_in.globalPos-cameraPos,fs_in.globalNormal)).xyz;
     vec3 fragToCamera=normalize(cameraPos-fs_in.globalPos);
     float fr=pow(1-max(dot(fragToCamera,fs_in.globalNormal),0.f),8);
-    fragColor=vec4(vec3(fr),1);
     
     fragColor=vec4(outputColor+ambient*fr,1.f);
     
-    // fragColor=vec4(texture(texture_diffuse0,fs_in.texCoord).xyz,1);
+    // fragColor=vec4(fs_in.globalNormal,1);
 }
 
 vec3 Lighting(int i){

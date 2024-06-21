@@ -19,6 +19,14 @@
 #include "render_object.h"
 #include "shader.h"
 
+extern const std::string stdAsset_root;
+static const std::string defualt_light_model_path = stdAsset_root + "stdModel/sphere/sphere.obj";
+static const std::array<std::string, 3> defualt_light_shader_path = {
+    stdAsset_root + "stdShader/stdVerShader.vs.glsl",  // vertex shader
+    stdAsset_root + "stdShader/stdPureColor.fs.glsl",  // fragment shader
+    ""                                                 // geometry shader
+};
+
 namespace ck {
 
 class SkyBoxObject {
@@ -68,6 +76,7 @@ private:
     且没有定义复制构造器、复制赋值、移动赋值时，
     上述四个函数将全部无法使用，由此构成单例类。
     */
+    static std::unique_ptr<Scene> singleton;
     Scene();
     Scene(Scene&&) = delete;
 
@@ -85,7 +94,7 @@ public:
 
     /// @brief 添加一个灯光到场景中
     /// @note 灯光有默认的mesh和shader
-    void add_light();
+    void add_light(std::string object_name, const Light& light);
 
     void modify_object(int32_t object_index, const SceneObjectEdittingCtx* ctx);
 
@@ -100,5 +109,22 @@ public:
 如果没有显式指定如何构造它们，则会调用默认的构造函数
 其中Shader没有默认的构造函数
 */
+
+class SceneLightUBOManager {
+private:
+    Scene*   scene;
+    uint32_t lights_UBO;
+
+    int32_t calculate_memory_occupation() const;
+
+public:
+    SceneLightUBOManager();
+
+    void create_light_UBO();
+    void update_light_UBO() const;
+    void binding_uniformBuffer(uint32_t binding_point) const;
+
+    void print_bufferData() const;
+};
 
 }  // namespace ck
