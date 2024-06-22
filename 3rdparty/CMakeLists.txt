@@ -5,3 +5,7 @@ file(GLOB ENV{imgui_dockable_INCLUDE} $ENV{imgui_dockable_DIR}/*.h)
 file(GLOB imgui_dockable_SRC $ENV{imgui_dockable_DIR}/*.cpp $ENV{imgui_dockable_DIR}/*.h)
 add_library(imgui_dockable STATIC ${imgui_dockable_SRC})
 message(STATUS "imgui_dockable_SRC: $ENV{imgui_dockable_INCLUDE}")
+
+# open3d
+# set(ENV{Open3D_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/open3d-debug)
+

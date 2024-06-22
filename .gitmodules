@@ -5,3 +5,6 @@
 	path = 3rdparty/imgui
 	url = https://github.com/ocornut/imgui.git
 	branch = docking
+[submodule "Open3D"]
+	path = 3rdparty/Open3D
+	url = https://github.com/isl-org/Open3D.git
