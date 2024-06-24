@@ -158,9 +158,10 @@ ck::Scene& ck::Scene::get_instance()
     */
 }
 
-void ck::Scene::add_model_from_file(const std::string&                model_file_path,
-                                    const std::array<std::string, 3>& shader_file_path,
-                                    const std::string&                object_name)
+std::shared_ptr<ck::RenderObject>&
+ck::Scene::add_model_from_file(const std::string&                model_file_path,
+                               const std::array<std::string, 3>& shader_file_path,
+                               const std::string&                object_name)
 {
     // 在model_prototypes中查找是否有对应的model
     auto model_it = model_prototypes.begin();
@@ -193,6 +194,7 @@ void ck::Scene::add_model_from_file(const std::string&                model_file
                                                         *model_it, Light(-1), *shader_it,
                                                         scene_root.get(), RenderDrawType::NORMAL));
     scene_root->get_children().push_back(objects.back().get());  // 向scene_root添加子节点
+    return objects.back();
     /**FIXME - 错题本
     Access violation reading location 0xFFFFFFFFFFFFFFFF.
     std::vector容器是会更改位置的，所以之前拿到的指向容器元素的指针，不能保证未来仍然有效
@@ -203,7 +205,8 @@ void ck::Scene::add_model_from_file(const std::string&                model_file
     */
 }
 
-void ck::Scene::add_light(std::string object_name, const ck::Light& light)
+std::shared_ptr<ck::RenderObject>& ck::Scene::add_light(std::string      object_name,
+                                                        const ck::Light& light)
 {
     // 在model_prototypes中查找是否有对应的model
     auto model_it = model_prototypes.begin();
@@ -234,6 +237,7 @@ void ck::Scene::add_light(std::string object_name, const ck::Light& light)
         scene_root.get(), RenderDrawType::NORMAL));
     // 向scene_root添加子节点
     scene_root->get_children().push_back(objects.back().get());
+    return objects.back();
 
     /**FIXME - 问题记录：灯光渲染不出来
     因为render object的model矩阵的计算是根据RenderObject::position计算的，
@@ -245,11 +249,12 @@ void ck::Scene::add_light(std::string object_name, const ck::Light& light)
      */
 }
 
-void ck::Scene::modify_object(int32_t object_index, const ck::SceneObjectEdittingCtx* ctx)
+void ck::Scene::modify_object(const std::shared_ptr<ck::RenderObject>& object_ptr,
+                              const ck::SceneObjectEdittingCtx*        ctx)
 {
-    if (object_index < 0 || object_index >= objects.size())
+    if (!object_ptr)
     {
-        LOG(ERROR) << "cannot modify object whose index is out of the range!";
+        LOG(WARNING) << "object_ptr is nullptr!";
         return;
     }
     if (ctx->object_type == RenderObjectType::NULL_OBJECT)
@@ -258,14 +263,41 @@ void ck::Scene::modify_object(int32_t object_index, const ck::SceneObjectEdittin
         return;
     }
 
+    bool find_matched_object = false;
+    bool find_matched_parent = false;
+    for (const auto& object : objects)
+    {
+        if (object_ptr == object) { find_matched_object = true; }
+        if (ctx->parent_object != nullptr && ctx->parent_object == object.get())
+        {
+            find_matched_parent = true;
+        }
+    }
+    if (!find_matched_object)
+    {
+        LOG(WARNING) << "object_ptr is not a member of objects!";
+        return;
+    }
+    if (ctx->parent_object != nullptr && !find_matched_parent)
+    {
+        LOG(WARNING) << "parent_object is not a member of objects!";
+        return;
+    }
+
+    if (ctx->object_type != object_ptr->get_object_type())
+    {
+        LOG(ERROR) << "object type mismatch!";
+        return;
+    }
+
     switch (ctx->object_type)
     {
         case RenderObjectType::POLYGEN_MESH: {
-            objects[object_index]->modify_polygen(ctx);
+            object_ptr->modify_polygen(ctx);
             break;
         }
         case RenderObjectType::LIGHT: {
-            objects[object_index]->modify_light(ctx);
+            object_ptr->modify_light(ctx);
             break;
         }
         default: break;
@@ -380,7 +412,7 @@ void ck::SceneLightUBOManager::update_light_UBO() const
             memcpy(ptr + i * stride + 16, &(null_light_type), sizeof(int32_t));
         }
     }
-    
+
     memcpy(ptr, &(num_lights_found), sizeof(int32_t));  // 更新numLights
     // FIXME - 前16B = 4B整数 + 12B空填充
     glUnmapBuffer(GL_UNIFORM_BUFFER);

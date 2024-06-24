@@ -88,15 +88,17 @@ public:
 
     /// @brief 添加一个模型到场景中
     /// @note 从已加载的prototypes中快速加载，由内部判断和实现
-    void add_model_from_file(const std::string&                model_file_path,
-                             const std::array<std::string, 3>& shader_file_path,
-                             const std::string&                object_name);
+    std::shared_ptr<RenderObject>&
+    add_model_from_file(const std::string&                model_file_path,
+                        const std::array<std::string, 3>& shader_file_path,
+                        const std::string&                object_name);
 
     /// @brief 添加一个灯光到场景中
     /// @note 灯光有默认的mesh和shader
-    void add_light(std::string object_name, const Light& light);
+    std::shared_ptr<RenderObject>& add_light(std::string object_name, const Light& light);
 
-    void modify_object(int32_t object_index, const SceneObjectEdittingCtx* ctx);
+    void modify_object(const std::shared_ptr<ck::RenderObject>& object_ptr,
+                       const SceneObjectEdittingCtx*            ctx);
 
     [[nodiscard]] std::vector<std::shared_ptr<RenderObject>>& get_scene_objects();
     [[nodiscard]] SkyBoxObject&                               get_skyBox();

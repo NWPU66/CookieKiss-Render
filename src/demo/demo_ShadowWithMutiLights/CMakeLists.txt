@@ -11,10 +11,12 @@ file(GLOB HEADER ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 add_executable(demo_ShadowWithMutiLights 
     ${CMAKE_SOURCE_DIR}/3rdparty/imgui/backends/imgui_impl_glfw.cpp
     ${CMAKE_SOURCE_DIR}/3rdparty/imgui/backends/imgui_impl_opengl3.cpp
+    ${CMAKE_SOURCE_DIR}/3rdparty/imgui/misc/cpp/imgui_stdlib.cpp
     ${SRC}
     ${HEADER})
 target_include_directories(demo_ShadowWithMutiLights PRIVATE
     # ${CMAKE_SOURCE_DIR}/3rdparty/imgui
+    ${CMAKE_SOURCE_DIR}/3rdparty/imgui/misc/cpp
     ${CMAKE_SOURCE_DIR}/3rdparty/imgui/backends
     ${VCPKG_INCLUDE_DIR}
     ${SRC_DIR})

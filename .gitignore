@@ -41,6 +41,4 @@
 build/
 x64/
 
-3rdparty/open3d/
-3rdparty/open3d-debug/
-3rdparty/open3d-debug-0.17.0/
+3rdparty/open3d*/

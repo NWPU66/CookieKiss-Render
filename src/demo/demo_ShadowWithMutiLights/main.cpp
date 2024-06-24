@@ -13,6 +13,7 @@
 #include <ctime>
 
 #include <array>
+#include <glm/ext/vector_float3.hpp>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -41,6 +42,7 @@
 #include "camera.h"
 #include "core/ck_debug.h"
 #include "imgui_glfw_window_base.h"
+#include "imgui_stdlib.h"
 #include "light.h"
 #include "model.h"
 #include "render_object.h"
@@ -293,22 +295,63 @@ int main(int argc, char** argv)
     // Use New Render System
     auto& scene = ck::Scene::get_instance();
     scene.get_skyBox().load_skyBox_texture_from_file(stdAsset_root + "stdTexture/skybox/");
-    scene.add_model_from_file(asset_root + "cube.obj",
-                              {stdAsset_root + "stdShader/stdVerShader.vs.glsl",
-                               asset_root + "stdShadowedPhongLighting.fs.glsl", ""},
-                              "cube_01");
+    auto cube_01  = scene.add_model_from_file(asset_root + "cube.obj",
+                                              {stdAsset_root + "stdShader/stdVerShader.vs.glsl",
+                                               asset_root + "stdShadowedPhongLighting.fs.glsl", ""},
+                                              "cube_01");
+    auto plane_01 = scene.add_model_from_file(asset_root + "plane.obj",
+                                              {stdAsset_root + "stdShader/stdVerShader.vs.glsl",
+                                               asset_root + "stdShadowedPhongLighting.fs.glsl", ""},
+                                              "plane_01");
+
+    // modify the 2nd object
+    {
+        ck::SceneObjectEdittingCtx ctx;
+        ctx.object_type = ck::RenderObjectType::POLYGEN_MESH;
+        ctx.object_name = "this is a plane";
+        glm::vec3 position(0, -1.5, 0);
+        glm::vec3 scale(10.0F);
+        ctx.postion = &position;
+        ctx.scale   = &scale;
+        scene.modify_object(plane_01, &ctx);
+    }
+
     // add a light to the scene
     {
-        scene.add_light("a light", ck::Light(0, glm::vec3(1), 1));
+        auto light_01 = scene.add_light("a light", ck::Light(0, glm::vec3(1), 1));
         ck::SceneObjectEdittingCtx ctx;
         ctx.object_type   = ck::RenderObjectType::LIGHT;
         ctx.object_name   = "this is a light";
-        ctx.parent_object = scene.get_scene_objects()[1].get();
-        glm::vec3 position(0, 3, 0);
+        ctx.parent_object = cube_01.get();
+        glm::vec3 position(1, 3, 0);
         glm::vec3 scale(0.1F);
         ctx.postion = &position;
         ctx.scale   = &scale;
-        scene.modify_object(2, &ctx);
+        scene.modify_object(light_01, &ctx);
+    }
+    {
+        auto light_02 = scene.add_light("a light", ck::Light(0, glm::vec3(1), 1));
+        ck::SceneObjectEdittingCtx ctx;
+        ctx.object_type   = ck::RenderObjectType::LIGHT;
+        ctx.object_name   = "this is a light";
+        ctx.parent_object = cube_01.get();
+        glm::vec3 position(2, 0, 2);
+        glm::vec3 scale(0.1F);
+        ctx.postion = &position;
+        ctx.scale   = &scale;
+        scene.modify_object(light_02, &ctx);
+    }
+    {
+        auto light_03 = scene.add_light("a light", ck::Light(0, glm::vec3(1), 1));
+        ck::SceneObjectEdittingCtx ctx;
+        ctx.object_type   = ck::RenderObjectType::LIGHT;
+        ctx.object_name   = "this is a light";
+        ctx.parent_object = cube_01.get();
+        glm::vec3 position(-2, 0, -2);
+        glm::vec3 scale(0.1F);
+        ctx.postion = &position;
+        ctx.scale   = &scale;
+        scene.modify_object(light_03, &ctx);
     }
     // light manager
     ck::SceneLightUBOManager scene_light_maneger;
@@ -332,9 +375,93 @@ int main(int argc, char** argv)
             ImGui::Begin("CookieKiss Render Assistant");
             ImGui::ColorEdit3("clear color", clear_color.data());
             if (ImGui::Button("open Demo window")) { open_demo_window = true; }
-            ImGui::End();
 
             if (open_demo_window) { ImGui::ShowDemoWindow(&open_demo_window); }
+
+            // scene tree node start here
+            ImGuiTreeNodeFlags flag = ImGuiTreeNodeFlags_DefaultOpen;
+            if (ImGui::TreeNodeEx("root", flag))
+            {
+                if (ImGui::TreeNodeEx("item-----1", flag))
+                {
+                    ImGui::Text("item-----1.1");
+                    ImGui::Text("item-----1.2");
+
+                    ImGui::TreePop();
+                }
+                ImGui::Text("item-----2");
+                ImGui::Text("item-----3");
+                ImGui::Text("item-----4");
+
+                ImGui::TreePop();  // This is required at the end of the if block
+            }
+            ImGui::End();
+
+            // Render Object Detail
+            ImGui::Begin("Scene Object Detail");
+            if (ImGui::CollapsingHeader("general", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                static std::string object_name = "a object";
+                ImGui::InputText("object name", &object_name);
+                /**FIXME -
+                在string等自定义类型中使用ImGui::InputText()，要用ResizeCallback()
+                使用来自imgui_stdlib.h重载过的ImGui::InputText()
+                */
+                // object type
+                {
+                    static const std::array<const std::string, 3> object_type = {
+                        "Scene_Root", "Polygen_Mesh", "Light"};
+                    static int item_current_idx = 1;
+                    if (ImGui::BeginCombo("object type", object_type[item_current_idx].c_str()))
+                    {
+                        for (int i = 0; i < object_type.size(); i++)
+                        {
+                            const bool is_selected = (item_current_idx == i);
+                            if (ImGui::Selectable(object_type[i].c_str(), is_selected))
+                            {
+                                item_current_idx = i;
+                            }
+                            if (is_selected) { ImGui::SetItemDefaultFocus(); }
+                        }
+                        ImGui::EndCombo();
+                    }
+                }
+                // object parent
+                {
+                    static const std::array<const std::string, 6> scene_objects = {
+                        "scene_root", "cube_01", "plane_01", "light_01", "light_02", "light_03"};
+                    static const std::array<const std::string, 6> objects_parent = {
+                        "null", "scene_root", "scene_root", "cube_01", "cube_01", "cube_01"};
+                    static int item_current_idx = 4;
+                    if (ImGui::BeginCombo("object parent", scene_objects[item_current_idx].c_str()))
+                    {
+                        for (int i = 0; i < scene_objects.size(); i++)
+                        {
+                            const bool is_selected = (item_current_idx == i);
+                            if (ImGui::Selectable(scene_objects[i].c_str(), is_selected))
+                            {
+                                // change parent object
+                                item_current_idx = i;
+                            }
+                            if (is_selected) { ImGui::SetItemDefaultFocus(); }
+                        }
+                        ImGui::EndCombo();
+                    }
+                }
+            }
+
+            // transformation
+            if (ImGui::CollapsingHeader("transformation", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                static glm::vec3 position(1, 0, 1);
+                static glm::vec3 rotation(0, 0, 0);
+                static glm::vec3 scale(1, 1, 1);
+                ImGui::InputFloat3("position", &position[0]);
+                ImGui::InputFloat3("rotation", &rotation[0]);
+                ImGui::InputFloat3("scale", &scale[0]);
+            }
+
+            ImGui::End();
         }
         ImGui::Render();
 
@@ -432,7 +559,7 @@ int main(int argc, char** argv)
                                glm::radians(sin(ImGui::GetTime() + 10.0F) * 90.0F),
                                glm::radians(sin(ImGui::GetTime() + 50.0F) * 90.0F));
             ctx.rotation = &rotation;
-            scene.modify_object(1, &ctx);
+            scene.modify_object(cube_01, &ctx);
             scene.draw(window);
         }
 
